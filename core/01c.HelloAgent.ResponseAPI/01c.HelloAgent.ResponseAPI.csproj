@@ -1,0 +1,30 @@
+<!--
+  01c. HELLO AGENT - OPENAI RESPONSE API
+
+  This project demonstrates OpenAI's Response API, an evolution of Chat Completions
+  that provides:
+  - Stateful conversations (no need to pass full history)
+  - Built-in hosted tools (Web Search, Code Interpreter, File Search)
+  - Better cache utilization (40-80% improvement)
+  - Access to reasoning summaries
+  - Support for MCP servers
+
+  Response API is OpenAI's recommended API for new agentic applications.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework with OpenAI support -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

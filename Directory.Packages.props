@@ -1,0 +1,211 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                  LEARNING AGENT FRAMEWORK - PACKAGE VERSIONS                  ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Central Package Management (CPM) - Gestione centralizzata versioni NuGet    ║
+  ║                                                                               ║
+  ║  COME FUNZIONA:                                                               ║
+  ║  - Qui definiamo TUTTE le versioni dei pacchetti NuGet                        ║
+  ║  - Nei .csproj usiamo <PackageReference Include="..." /> SENZA Version        ║
+  ║  - MSBuild prende automaticamente la versione da questo file                  ║
+  ║                                                                               ║
+  ║  VANTAGGI:                                                                    ║
+  ║  - Una sola posizione per aggiornare le versioni                              ║
+  ║  - Nessun conflitto di versioni tra progetti                                  ║
+  ║  - Visione chiara di tutte le dipendenze                                      ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      MICROSOFT AGENT FRAMEWORK - Core packages
+      ══════════════════════════════════════════════════════════════════════════
+      Questi sono i pacchetti principali del Microsoft Agent Framework.
+      Nota: Le versioni potrebbero cambiare rapidamente essendo in Preview.
+    -->
+
+    <!--
+      Microsoft.Agents.AI - Il cuore del framework
+      Contiene: ChatClientAgent, AgentThread, Tool system, Middleware
+    -->
+    <PackageVersion Include="Microsoft.Agents.AI" Version="1.0.0-preview.251219.1" />
+
+    <!--
+      Microsoft.Agents.AI.OpenAI - Integrazione con OpenAI
+      Permette di usare modelli GPT-4, GPT-4o, o3, etc.
+    -->
+    <PackageVersion Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251219.1" />
+
+    <!--
+      Microsoft.Agents.AI.Abstractions - Interfacce e contratti base
+      Utile per creare implementazioni custom
+    -->
+    <PackageVersion Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251219.1" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      MICROSOFT AGENT FRAMEWORK - Feature packages (da aggiungere progressivamente)
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+
+    <!-- Workflow orchestration - per orchestrazione multi-step -->
+    <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.251219.1" />
+
+    <!-- Agent-to-Agent communication - per sistemi multi-agente -->
+    <PackageVersion Include="Microsoft.Agents.AI.A2A" Version="1.0.0-preview.251219.1" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      MICROSOFT EXTENSIONS - Pacchetti di supporto Microsoft
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+
+    <!-- Dependency Injection - per IoC container -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
+
+    <!-- Configuration - per gestione settings e env variables -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.0-preview.7.25380.108" />
+
+    <!-- Hosting - per applicazioni hosted -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.7.25380.108" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      OPENAI SDK - Per accesso diretto alle API OpenAI
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+    <PackageVersion Include="OpenAI" Version="2.8.0" />
+
+    <!--
+      Microsoft.Extensions.AI.OpenAI - Integrazione OpenAI con Microsoft.Extensions.AI
+      Fornisce AsIChatClient() e AsIEmbeddingGenerator() per OpenAI SDK
+      NOTA: La versione deve essere >= a quella richiesta da Microsoft.Agents.AI.OpenAI
+    -->
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      AZURE OPENAI - Per deployment enterprise su Azure
+      ══════════════════════════════════════════════════════════════════════════
+      Azure OpenAI offre gli stessi modelli di OpenAI ma con:
+      - SLA enterprise e compliance
+      - Integrazione con Azure Active Directory
+      - Controllo regionale dei dati
+    -->
+    <PackageVersion Include="Azure.AI.OpenAI" Version="2.3.0-beta.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      OLLAMA - Per modelli LLM locali
+      ══════════════════════════════════════════════════════════════════════════
+      Ollama permette di eseguire modelli LLM localmente:
+      - Nessun costo per token
+      - Privacy totale (dati non escono dal PC)
+      - Funziona offline
+      - Supporta: Llama, Gemma, Mistral, Phi, etc.
+    -->
+    <PackageVersion Include="OllamaSharp" Version="5.1.12" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      ANTHROPIC CLAUDE - Per modelli Claude (Claude 3.5, Claude 4, etc.)
+      ══════════════════════════════════════════════════════════════════════════
+      Anthropic offre modelli Claude, noti per:
+      - Eccellente ragionamento e analisi
+      - Contesto lungo (fino a 200K token)
+      - Forte allineamento etico
+    -->
+    <PackageVersion Include="Anthropic.SDK" Version="5.8.0" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      GOOGLE GEMINI - Per modelli Gemini (Gemini Pro, Gemini Flash, etc.)
+      ══════════════════════════════════════════════════════════════════════════
+      Google Gemini offre:
+      - Modelli multimodali (testo, immagini, video)
+      - Gemini Flash per risposte veloci e economiche
+      - Gemini Pro per task complessi
+    -->
+    <PackageVersion Include="Mscc.GenerativeAI.Microsoft" Version="2.3.1" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      SEMANTIC KERNEL - Per funzionalità RAG e Vector Store
+      ══════════════════════════════════════════════════════════════════════════
+      Nota: Microsoft Agent Framework può usare i connector di Semantic Kernel
+      per le funzionalità di vector store e embedding.
+    -->
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.54.0-preview" />
+
+    <!-- Qdrant Vector Store - Database vettoriale nativo, ottimo per RAG -->
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.54.0-preview" />
+
+    <!-- SQL Server Vector Store - Per chi usa già SQL Server (richiede SQL Server 2025) -->
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.SqlServer" Version="1.54.0-preview" />
+
+    <!-- PostgreSQL + pgvector - Soluzione open source popolare per vector search -->
+    <!-- NOTA: Package rinominato in PgVector dal maggio 2025 -->
+    <PackageVersion Include="Microsoft.SemanticKernel.Connectors.PgVector" Version="1.54.0-preview" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      UTILITY PACKAGES - Pacchetti di utilità generale
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+
+    <!-- Spectre.Console - Per output console ricco e colorato -->
+    <PackageVersion Include="Spectre.Console" Version="0.50.0" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      MODEL CONTEXT PROTOCOL (MCP) - Per integrazione con tool server esterni
+      ══════════════════════════════════════════════════════════════════════════
+      MCP è un protocollo standard per connettere LLM a server che espongono:
+      - Tools (funzioni che l'LLM può chiamare)
+      - Resources (dati/contesto)
+      - Prompts (template predefiniti)
+    -->
+    <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
+
+    <!-- MCP AspNetCore - Per creare MCP Server con trasporto HTTP -->
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      WEB API PACKAGES - For ASP.NET Core Web API projects
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+    <!-- Swashbuckle.AspNetCore - OpenAPI/Swagger documentation for Web APIs -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="7.3.2" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      DATABASE PACKAGES - For data access
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+    <!-- Dapper - Micro-ORM leggero e performante -->
+    <PackageVersion Include="Dapper" Version="2.1.35" />
+
+    <!-- Microsoft.Data.Sqlite - Provider SQLite per .NET -->
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0-rc.1.25451.107" />
+
+    <!--
+      ══════════════════════════════════════════════════════════════════════════
+      TELEGRAM BOT - For Telegram integration
+      ══════════════════════════════════════════════════════════════════════════
+    -->
+    <!-- Telegram.Bot - Client library for Telegram Bot API -->
+    <PackageVersion Include="Telegram.Bot" Version="22.5.0" />
+  </ItemGroup>
+</Project>

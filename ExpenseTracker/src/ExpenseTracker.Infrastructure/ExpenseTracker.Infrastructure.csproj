@@ -1,0 +1,35 @@
+<!--
+  ExpenseTracker.Infrastructure - Data Access Layer
+
+  Contains:
+  - SQLite database setup and connection factory
+  - Repository implementations using Dapper
+  - Database schema and initialization
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExpenseTracker.Infrastructure</RootNamespace>
+    <AssemblyName>ExpenseTracker.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Project Reference -->
+    <ProjectReference Include="..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Database -->
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+
+    <!-- Vector Store -->
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+    <PackageReference Include="OpenAI" />
+
+    <!-- Dependency Injection -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

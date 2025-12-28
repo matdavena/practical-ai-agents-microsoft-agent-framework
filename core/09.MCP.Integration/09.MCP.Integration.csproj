@@ -1,0 +1,49 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                    09. MCP INTEGRATION                                       ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Nono progetto del Learning Path: MODEL CONTEXT PROTOCOL                     ║
+  ║                                                                              ║
+  ║  COSA IMPARERAI:                                                             ║
+  ║  - Cos'è MCP e perché è importante per gli agenti AI                         ║
+  ║  - Connessione a MCP Server via Stdio (processi locali)                      ║
+  ║  - Utilizzo di tool esterni con agenti AI                                    ║
+  ║  - Pattern di integrazione con server filesystem e GitHub                    ║
+  ║                                                                              ║
+  ║  MCP (Model Context Protocol):                                               ║
+  ║  - Standard aperto per connettere LLM a servizi esterni                      ║
+  ║  - Espone: Tools, Resources, Prompts                                         ║
+  ║  - Supporta: Stdio, HTTP/SSE, WebSocket                                      ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  PREREQUISITI:
+  - Node.js installato (per npx e server MCP npm)
+  - GITHUB_TOKEN env var (opzionale, per GitHub MCP server)
+
+  NOTA: Le proprietà comuni sono ereditate da Directory.Build.props
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework - Core -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- OpenAI SDK -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- Model Context Protocol - Client per connettersi a MCP server -->
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Riferimento alla libreria Common condivisa -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

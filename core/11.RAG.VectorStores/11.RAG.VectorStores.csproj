@@ -1,0 +1,46 @@
+<!--
+  11. RAG CON VECTOR STORES REALI
+
+  Progetto che dimostra l'uso di vector store reali per RAG:
+  - Qdrant (vector database nativo)
+  - SQL Server (database relazionale con supporto vettoriale)
+
+  Entrambi eseguibili in locale tramite Docker.
+
+  PREREQUISITI:
+  - Docker Desktop installato e in esecuzione
+  - Eseguire: docker compose up -d (dalla cartella del progetto)
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- OpenAI SDK -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- Vector Store Connectors -->
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.PgVector" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.SqlServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+  <!-- Copia docker-compose.yml nell'output -->
+  <ItemGroup>
+    <None Update="docker-compose.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

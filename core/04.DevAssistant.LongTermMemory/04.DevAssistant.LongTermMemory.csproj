@@ -1,0 +1,52 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                04. DEV ASSISTANT - LONG TERM MEMORY                          ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Quarto progetto del Learning Path: MEMORIA SEMANTICA E RAG                  ║
+  ║                                                                              ║
+  ║  COSA IMPARERAI:                                                             ║
+  ║  - Vector Store per memorizzazione semantica                                 ║
+  ║  - Embeddings per convertire testo in vettori                                ║
+  ║  - ChatHistoryMemoryProvider per memoria automatica                          ║
+  ║  - RAG (Retrieval Augmented Generation) pattern                              ║
+  ║                                                                              ║
+  ║  DIFFERENZA DAL PROGETTO 03:                                                 ║
+  ║  - Progetto 03: Memoria basata su pattern matching (estrazione esplicita)    ║
+  ║  - Progetto 04: Memoria semantica (ricerca per similarità)                   ║
+  ║                                                                              ║
+  ║  QUANDO USARE COSA:                                                          ║
+  ║  - Pattern matching: per info strutturate (nome, preferenze specifiche)      ║
+  ║  - Vector Store: per grandi quantità di info non strutturate                 ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  NOTA: Le proprietà comuni (TargetFramework, Nullable, etc.) sono ereditate
+  da Directory.Build.props nella root della solution.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework - Core -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- Semantic Kernel InMemory Vector Store -->
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+
+    <!-- OpenAI SDK per chat e embeddings -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- Microsoft.Extensions.AI.OpenAI per AsIEmbeddingGenerator() -->
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Riferimento alla libreria Common condivisa -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

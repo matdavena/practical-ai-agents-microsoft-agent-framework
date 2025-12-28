@@ -1,0 +1,34 @@
+<!--
+  ExpenseTracker.Console - Console Application
+
+  Interactive console interface for testing and using the expense tracker.
+  Uses Spectre.Console for rich terminal output.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExpenseTracker.Console</RootNamespace>
+    <AssemblyName>ExpenseTracker.Console</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Project References -->
+    <ProjectReference Include="..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
+    <ProjectReference Include="..\ExpenseTracker.Infrastructure\ExpenseTracker.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Console UI -->
+    <PackageReference Include="Spectre.Console" />
+
+    <!-- Configuration -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+
+    <!-- Dependency Injection -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+</Project>

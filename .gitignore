@@ -1,0 +1,126 @@
+# ============================================================================
+# .NET / C# - Standard .gitignore
+# ============================================================================
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Rider files
+.idea/
+
+# VS Code
+.vscode/
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.tlog
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+nuget.exe
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.Coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+
+# ASP.NET
+ScaffoldingReadMe.txt
+
+# Dotnet
+*.dotCover
+*.DotSettings.user
+
+# Databases
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.sqlite
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ============================================================================
+# Project-specific exclusions
+# ============================================================================
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.secrets.json
+
+# API Keys (NEVER commit these!)
+**/apikeys.txt
+**/credentials.json
+
+# Qdrant data (Docker volume)
+qdrant_storage/
+
+# SQLite databases created at runtime
+expenses.db
+
+# Temporary files
+tmp/
+temp/
+

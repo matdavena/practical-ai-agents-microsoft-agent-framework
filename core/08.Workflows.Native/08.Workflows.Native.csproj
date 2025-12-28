@@ -1,0 +1,45 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                    08. WORKFLOWS - NATIVE API                                ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Ottavo progetto del Learning Path: ORCHESTRAZIONE CON API NATIVE            ║
+  ║                                                                              ║
+  ║  COSA IMPARERAI:                                                             ║
+  ║  - AgentWorkflowBuilder per costruire workflow                               ║
+  ║  - Pattern Sequential, Concurrent, Handoffs, GroupChat                       ║
+  ║  - Differenze tra implementazione custom e API native                        ║
+  ║  - Quando usare quale pattern                                                ║
+  ║                                                                              ║
+  ║  CONFRONTO CON PROGETTO 07:                                                  ║
+  ║  - 07: Implementazione manuale dei pattern (didattico)                       ║
+  ║  - 08: API native del framework (production-ready)                           ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  NOTA: Le proprietà comuni (TargetFramework, Nullable, etc.) sono ereditate
+  da Directory.Build.props nella root della solution.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework - Core -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- Microsoft Agent Framework - Workflows (NUOVO!) -->
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+
+    <!-- OpenAI SDK per chat -->
+    <PackageReference Include="OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Riferimento alla libreria Common condivisa -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

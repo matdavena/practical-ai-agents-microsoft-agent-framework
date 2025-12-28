@@ -1,0 +1,35 @@
+<!--
+  01d. HELLO AGENT - STRUCTURED OUTPUT
+
+  This project demonstrates how to get structured, typed responses from LLMs.
+  Instead of free-form text, the agent returns data that conforms to a C# class.
+
+  KEY FEATURES:
+  - RunAsync<T>() returns typed responses
+  - JSON Schema is automatically generated from C# classes
+  - Works with enums, nested objects, arrays
+  - Guaranteed schema compliance (no hallucinated fields)
+
+  USE CASES:
+  - Data extraction from unstructured text
+  - Form filling and entity extraction
+  - API response generation
+  - Structured data analysis
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework with OpenAI support -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

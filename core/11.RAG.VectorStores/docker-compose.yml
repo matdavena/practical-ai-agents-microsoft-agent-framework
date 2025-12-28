@@ -1,0 +1,164 @@
+# ============================================================================
+# DOCKER COMPOSE - VECTOR STORES PER RAG
+# ============================================================================
+#
+# Questo file configura i container Docker per i vector store:
+# - Qdrant: database vettoriale nativo (porta 6333/6334)
+# - PostgreSQL + pgvector: RDBMS open source con vector (porta 5433)
+# - SQL Server: RDBMS con supporto vector (porta 1434, SQL Server 2025)
+#
+# NOTA: Le porte sono scelte per evitare conflitti con installazioni locali.
+#
+# ============================================================================
+# COMANDI UTILI
+# ============================================================================
+#
+# Avviare i container:
+#   docker compose up -d
+#
+# Verificare lo stato:
+#   docker compose ps
+#
+# Vedere i log:
+#   docker compose logs -f
+#
+# Fermare i container:
+#   docker compose down
+#
+# Rimuovere tutto (inclusi volumi):
+#   docker compose down -v
+#
+# ============================================================================
+
+services:
+  # ==========================================================================
+  # QDRANT - Vector Database Nativo
+  # ==========================================================================
+  #
+  # Qdrant è un database vettoriale open-source ottimizzato per:
+  # - Ricerca semantica ad alte prestazioni
+  # - Filtering avanzato durante la ricerca
+  # - Supporto per miliardi di vettori
+  #
+  # Dashboard: http://localhost:6333/dashboard
+  # API REST:  http://localhost:6333
+  # gRPC:      localhost:6334
+  #
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-vectorstore
+    ports:
+      - "6333:6333"   # REST API + Dashboard
+      - "6334:6334"   # gRPC (opzionale, per performance)
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================================================
+  # POSTGRESQL + PGVECTOR - Database Relazionale con Vector Support
+  # ==========================================================================
+  #
+  # PostgreSQL con estensione pgvector è la soluzione più popolare per
+  # aggiungere capacità vettoriali a un database relazionale.
+  #
+  # VANTAGGI:
+  # - Open source e gratuito
+  # - Estensione pgvector matura e ben documentata
+  # - Supporta indici HNSW e IVFFlat
+  # - Ampia community e supporto
+  # - Facilmente disponibile su tutti i cloud
+  #
+  # Connessione:
+  #   Host: localhost
+  #   Port: 5433 (per evitare conflitti con PostgreSQL locale su 5432)
+  #   Database: vectorstore
+  #   User: postgres
+  #   Password: VectorStore123!
+  #
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres-vectorstore
+    ports:
+      - "5433:5432"   # Porta esterna 5433 -> interna 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=VectorStore123!
+      - POSTGRES_DB=vectorstore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================================================
+  # SQL SERVER 2025 - Database Relazionale con Vector Support
+  # ==========================================================================
+  #
+  # IMPORTANTE: Il tipo VECTOR è disponibile SOLO in SQL Server 2025!
+  # SQL Server 2022 NON supporta il tipo VECTOR nativo.
+  #
+  # SQL Server 2025 include supporto nativo per:
+  # - Tipo di dato VECTOR per memorizzare embedding
+  # - Funzione VECTOR_DISTANCE per calcolare similarità
+  # - Supporto per cosine, euclidean, dot product
+  #
+  # NOTA: Usa la porta 1434 per evitare conflitti con SQL Server locale (1433)
+  #
+  # Connessione:
+  #   Server: localhost,1434
+  #   User: sa
+  #   Password: VectorStore123!
+  #
+  # NOTA: Il tipo VECTOR nativo richiede SQL Server 2025 (non ancora pubblico).
+  # Per ora usiamo SQL Server 2022, ma la demo Vector non funzionerà.
+  # Quando SQL Server 2025 sarà disponibile, cambiare l'immagine.
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-vectorstore
+    ports:
+      - "1434:1433"   # Porta esterna 1434 -> interna 1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=VectorStore123!
+      - MSSQL_PID=Developer   # Edizione Developer (gratuita per sviluppo)
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "VectorStore123!", "-Q", "SELECT 1", "-C"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ==========================================================================
+# VOLUMI PERSISTENTI
+# ==========================================================================
+# I dati vengono salvati in volumi Docker per persistenza tra riavvii.
+# Usa "docker compose down -v" per rimuovere anche i volumi.
+
+volumes:
+  qdrant_data:
+    name: rag_qdrant_data
+  postgres_data:
+    name: rag_postgres_data
+  sqlserver_data:
+    name: rag_sqlserver_data
+
+# ==========================================================================
+# RETE
+# ==========================================================================
+# I container condividono una rete bridge per comunicare tra loro.
+
+networks:
+  default:
+    name: rag_vectorstores_network

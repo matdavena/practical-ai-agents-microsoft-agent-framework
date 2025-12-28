@@ -1,0 +1,46 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                    03. DEV ASSISTANT - MEMORY                                ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Terzo progetto del Learning Path: MEMORIA DELL'AGENTE                       ║
+  ║                                                                              ║
+  ║  COSA IMPARERAI:                                                             ║
+  ║  - Memoria a breve termine (Thread Persistence)                              ║
+  ║  - Memoria a lungo termine (Vector Store + Embeddings)                       ║
+  ║  - AIContextProvider per iniettare contesto dinamico                         ║
+  ║  - Serializzazione/Deserializzazione delle conversazioni                     ║
+  ║                                                                              ║
+  ║  LA MEMORIA È FONDAMENTALE:                                                  ║
+  ║  - Senza memoria, l'agente "dimentica" tutto ad ogni esecuzione              ║
+  ║  - Short-term: ricorda la conversazione corrente (Thread)                    ║
+  ║  - Long-term: ricorda informazioni tra sessioni diverse (Vector Store)       ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  NOTA: Le proprietà comuni (TargetFramework, Nullable, etc.) sono ereditate
+  da Directory.Build.props nella root della solution.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework - Core -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- Semantic Kernel InMemory Vector Store per la memoria a lungo termine -->
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+
+    <!-- OpenAI SDK per embeddings -->
+    <PackageReference Include="OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Riferimento alla libreria Common condivisa -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

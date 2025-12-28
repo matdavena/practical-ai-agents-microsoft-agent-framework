@@ -1,0 +1,41 @@
+<!--
+  01b. HELLO AGENT - MULTIPLE LLM PROVIDERS
+
+  This project demonstrates how Microsoft Agent Framework works with
+  different LLM providers:
+  - OpenAI (direct API)
+  - Azure OpenAI (enterprise deployment)
+  - Ollama (local models)
+
+  This shows the framework's flexibility and provider-agnostic design.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- Azure OpenAI -->
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Identity" />
+
+    <!-- Ollama (local models) -->
+    <PackageReference Include="OllamaSharp" />
+
+    <!-- Anthropic Claude -->
+    <PackageReference Include="Anthropic.SDK" />
+
+    <!-- Google Gemini -->
+    <PackageReference Include="Mscc.GenerativeAI.Microsoft" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

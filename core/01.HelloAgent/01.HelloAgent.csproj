@@ -1,0 +1,51 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                            01. HELLO AGENT                                   ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  FIRST PROJECT - Introduction to Microsoft Agent Framework                   ║
+  ║                                                                              ║
+  ║  What you'll learn:                                                          ║
+  ║  - How to create a basic agent with ChatClientAgent                          ║
+  ║  - How to configure the OpenAI client                                        ║
+  ║  - The basic interaction cycle: prompt → LLM → response                      ║
+  ║  - Response streaming handling                                               ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Clean RootNamespace (without initial number) -->
+    <RootNamespace>HelloAgent</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      MICROSOFT AGENT FRAMEWORK PACKAGES
+      ═══════════════════════════════════
+    -->
+
+    <!-- Framework core - contains ChatClientAgent, AgentThread, etc. -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+
+    <!-- OpenAI integration - allows using GPT models -->
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!--
+      SUPPORT PACKAGES
+      ═════════════════════
+    -->
+
+    <!-- Official OpenAI SDK (used internally by Microsoft.Agents.AI.OpenAI) -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- Spectre.Console for colored output -->
+    <PackageReference Include="Spectre.Console" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference to the shared Common library -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

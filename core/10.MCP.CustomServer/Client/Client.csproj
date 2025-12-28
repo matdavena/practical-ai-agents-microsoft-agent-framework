@@ -1,0 +1,32 @@
+<!--
+  10. MCP CUSTOM SERVER - CLIENT
+
+  Client che si connette al nostro MCP Server custom e usa i tool
+  tramite un agente AI.
+
+  PREREQUISITO: Il Server deve essere in esecuzione!
+  Esegui prima: dotnet run (progetto Server)
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- OpenAI SDK -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- MCP Client -->
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

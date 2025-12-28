@@ -1,0 +1,76 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                    LEARNING AGENT FRAMEWORK - BUILD PROPS                     ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Questo file definisce le proprietà di build comuni a TUTTI i progetti       ║
+  ║  della solution. Viene automaticamente importato da MSBuild.                  ║
+  ║                                                                               ║
+  ║  Vantaggi:                                                                    ║
+  ║  - Configurazione centralizzata (DRY principle)                               ║
+  ║  - Consistenza tra tutti i progetti                                           ║
+  ║  - Facile manutenzione delle versioni e settings                              ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+<Project>
+  <PropertyGroup>
+    <!--
+      Target Framework: .NET 10 (ultima versione)
+      Questo imposta il framework di destinazione per tutti i progetti
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!--
+      Abilita le Nullable Reference Types (NRT)
+      Aiuta a prevenire NullReferenceException a compile-time
+      Best practice moderna in C#
+    -->
+    <Nullable>enable</Nullable>
+
+    <!--
+      Abilita l'uso implicito degli using globali
+      Include automaticamente namespace comuni come System, System.Collections.Generic, etc.
+    -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      Usa l'ultima versione del linguaggio C#
+      Permette di usare tutte le feature più recenti
+    -->
+    <LangVersion>latest</LangVersion>
+
+    <!--
+      Tratta i warning come errori in Release
+      Forza un codice più pulito e robusto
+    -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+
+    <!--
+      Abilita la gestione centralizzata dei pacchetti NuGet
+      Le versioni sono definite in Directory.Packages.props
+    -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!--
+    Informazioni comuni per tutti gli assembly
+    Utile per identificazione e documentazione
+  -->
+  <PropertyGroup>
+    <Authors>Learning Agent Framework Team</Authors>
+    <Company>AI Learning Lab</Company>
+    <Product>Learning Agent Framework</Product>
+    <Description>Progetti di apprendimento per Microsoft Agent Framework</Description>
+    <Copyright>Copyright © 2025</Copyright>
+  </PropertyGroup>
+
+  <!--
+    Configurazione per una migliore esperienza di sviluppo
+  -->
+  <PropertyGroup>
+    <!-- Genera file XML per IntelliSense -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Disabilita warning per commenti XML mancanti (troppo rumore durante lo sviluppo) -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+</Project>

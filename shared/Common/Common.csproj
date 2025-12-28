@@ -1,0 +1,29 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                              COMMON LIBRARY                                   ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Libreria condivisa con utilities comuni a tutti i progetti.                  ║
+  ║                                                                               ║
+  ║  Contiene:                                                                    ║
+  ║  - Configuration helpers per leggere API keys                                 ║
+  ║  - Console helpers per output formattato                                      ║
+  ║  - Extension methods utili                                                    ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  NOTA: Le proprietà comuni (TargetFramework, Nullable, etc.) sono ereditate
+  da Directory.Build.props nella root della solution.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- Spectre.Console per output colorato e formattato nella console -->
+    <PackageReference Include="Spectre.Console" />
+
+    <!-- Configuration per gestire settings e variabili d'ambiente -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,53 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                    05. CODE REVIEWER - RAG                                   ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  Quinto progetto del Learning Path: RAG CON KNOWLEDGE BASE                   ║
+  ║                                                                              ║
+  ║  COSA IMPARERAI:                                                             ║
+  ║  - Caricare documenti esterni come knowledge base                            ║
+  ║  - TextSearchProvider per ricerca semantica nei documenti                    ║
+  ║  - Chunking dei documenti per embedding efficiente                           ║
+  ║  - Citazione delle fonti nelle risposte                                      ║
+  ║                                                                              ║
+  ║  SCENARIO:                                                                   ║
+  ║  Un Code Reviewer che conosce best practices di programmazione               ║
+  ║  caricate da una knowledge base di documenti.                                ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+
+  NOTA: Le proprietà comuni (TargetFramework, Nullable, etc.) sono ereditate
+  da Directory.Build.props nella root della solution.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework - Core -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- Semantic Kernel InMemory Vector Store -->
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+
+    <!-- OpenAI SDK per chat e embeddings -->
+    <PackageReference Include="OpenAI" />
+
+    <!-- Microsoft.Extensions.AI.OpenAI per AsIEmbeddingGenerator() -->
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Riferimento alla libreria Common condivisa -->
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+  <!-- Copia i file della knowledge base nella directory di output -->
+  <ItemGroup>
+    <None Include="KnowledgeBase\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

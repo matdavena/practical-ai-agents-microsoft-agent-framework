@@ -1,0 +1,42 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║                        02. DEV ASSISTANT - TOOLS                              ║
+  ╠══════════════════════════════════════════════════════════════════════════════╣
+  ║  SECOND PROJECT - Function Calling / Tools                                   ║
+  ║                                                                               ║
+  ║  What you'll learn:                                                           ║
+  ║  - How to define Tools (functions that the agent can call)                    ║
+  ║  - How to use AIFunctionFactory to register functions                         ║
+  ║  - The Function Calling pattern: LLM decides when to call tools               ║
+  ║  - How the agent can interact with the external world                         ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DevAssistant.Tools</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      MICROSOFT AGENT FRAMEWORK PACKAGES
+      ═══════════════════════════════════
+    -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!--
+      MICROSOFT EXTENSIONS AI
+      ═══════════════════════
+      Contains AIFunctionFactory for creating tools from .NET functions
+    -->
+    <PackageReference Include="OpenAI" />
+    <PackageReference Include="Spectre.Console" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

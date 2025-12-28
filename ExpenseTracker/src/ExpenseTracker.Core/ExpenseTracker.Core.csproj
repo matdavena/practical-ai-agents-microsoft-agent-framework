@@ -1,0 +1,31 @@
+<!--
+  ExpenseTracker.Core - Core Library
+
+  Contains:
+  - Domain Entities (Expense, Category, User, Budget)
+  - Agents (Orchestrator, Parser, Receipt, Report, Query)
+  - Tools (ExpenseTools, CategoryTools, ReportTools)
+  - Services interfaces and implementations
+  - Models for AI structured output
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>ExpenseTracker.Core</RootNamespace>
+    <AssemblyName>ExpenseTracker.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft Agent Framework -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" />
+
+    <!-- OpenAI SDK (for vision capabilities) -->
+    <PackageReference Include="OpenAI" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+
+    <!-- Dependency Injection -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>
