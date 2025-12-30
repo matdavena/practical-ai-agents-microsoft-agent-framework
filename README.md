@@ -8,7 +8,7 @@
 
 ## About This Repository
 
-This is the companion source code for the book **"Practical AI Agents with Microsoft Agent Framework"** by Matt Daveney.
+This is the companion source code for the book **"Practical AI Agents with Microsoft Agent Framework"** by Matteo D'Avena.
 
 The code is organized as a progressive learning path—each project builds upon the previous one, introducing new concepts for creating AI-powered applications with .NET.
 
@@ -23,7 +23,7 @@ The code is organized as a progressive learning path—each project builds upon 
 
 ```bash
 # Clone the repository
-git clone https://github.com/MattDaveney/practical-ai-agents-microsoft-agent-framework.git
+git clone https://github.com/matdavena/practical-ai-agents-microsoft-agent-framework.git
 cd practical-ai-agents-microsoft-agent-framework
 
 # Set your OpenAI API key
@@ -175,7 +175,7 @@ docker compose up -d
 
 **Title**: Practical AI Agents with Microsoft Agent Framework
 **Subtitle**: A hands-on guide for .NET developers
-**Author**: Matt Daveney
+**Author**: Matteo D'Avena
 
 ## License
 
@@ -183,7 +183,7 @@ This code is provided for educational purposes as companion material for the boo
 
 ## Questions or Issues?
 
-If you find bugs or have questions about the code, please [open an issue](https://github.com/MattDaveney/practical-ai-agents-microsoft-agent-framework/issues).
+If you find bugs or have questions about the code, please [open an issue](https://github.com/matdavena/practical-ai-agents-microsoft-agent-framework/issues).
 
 ## Acknowledgments
 
