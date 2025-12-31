@@ -1,21 +1,21 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // FILE: VectorStores/QdrantDemo.cs
 // ============================================================================
 //
-// DEMO RAG CON QDRANT
+// RAG DEMO WITH QDRANT
 //
-// Qdrant è un vector database open-source ottimizzato per:
-// - Ricerca semantica ad alte prestazioni
-// - Supporto per miliardi di vettori
-// - Filtering avanzato durante la ricerca
-// - API REST e gRPC native
+// Qdrant is an open-source vector database optimized for:
+// - High-performance semantic search
+// - Support for billions of vectors
+// - Advanced filtering during search
+// - Native REST and gRPC APIs
 //
-// PREREQUISITI:
-// 1. Docker Desktop in esecuzione
-// 2. Container Qdrant avviato: docker compose up -d qdrant
+// PREREQUISITES:
+// 1. Docker Desktop running
+// 2. Qdrant container started: docker compose up -d qdrant
 //
-// ENDPOINT:
+// ENDPOINTS:
 // - REST API: http://localhost:6333
 // - Dashboard: http://localhost:6333/dashboard
 // - gRPC: localhost:6334
@@ -33,13 +33,13 @@ using Qdrant.Client;
 namespace _11.RAG.VectorStores.VectorStores;
 
 /// <summary>
-/// Dimostra l'utilizzo di Qdrant come vector store per RAG.
+/// Demonstrates using Qdrant as a vector store for RAG.
 /// </summary>
 public static class QdrantDemo
 {
-    // Configurazione
-    // NOTA: Porta 6334 per gRPC (il client C# usa gRPC)
-    // La porta 6333 è per REST API e Dashboard web
+    // Configuration
+    // NOTE: Port 6334 for gRPC (the C# client uses gRPC)
+    // Port 6333 is for REST API and web Dashboard
     private const string QdrantHost = "localhost";
     private const int QdrantGrpcPort = 6334;
     private const string CollectionName = "learning-documents";
@@ -48,25 +48,25 @@ public static class QdrantDemo
 
     public static async Task RunAsync()
     {
-        ConsoleHelper.WriteTitle("RAG con Qdrant Vector Store");
+        ConsoleHelper.WriteTitle("RAG with Qdrant Vector Store");
 
         // ====================================================================
-        // STEP 1: VERIFICA CONNESSIONE A QDRANT
+        // STEP 1: VERIFY CONNECTION TO QDRANT
         // ====================================================================
-        ConsoleHelper.WriteSeparator("1. Connessione a Qdrant");
+        ConsoleHelper.WriteSeparator("1. Connection to Qdrant");
 
-        Console.WriteLine($"Connessione a Qdrant via gRPC: {QdrantHost}:{QdrantGrpcPort}");
+        Console.WriteLine($"Connecting to Qdrant via gRPC: {QdrantHost}:{QdrantGrpcPort}");
         Console.WriteLine();
 
-        // QdrantClient è il client ufficiale per comunicare con Qdrant
-        // Usa gRPC sulla porta 6334 per performance migliori
+        // QdrantClient is the official client for communicating with Qdrant
+        // Uses gRPC on port 6334 for better performance
         var qdrantClient = new QdrantClient(QdrantHost, QdrantGrpcPort);
 
         try
         {
-            // Verifica che Qdrant sia raggiungibile
+            // Verify that Qdrant is reachable
             var collections = await qdrantClient.ListCollectionsAsync();
-            Console.WriteLine($"Qdrant raggiungibile! Collezioni esistenti: {collections.Count}");
+            Console.WriteLine($"Qdrant reachable! Existing collections: {collections.Count}");
 
             foreach (var col in collections)
             {
@@ -75,15 +75,15 @@ public static class QdrantDemo
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERRORE: Impossibile connettersi a Qdrant!");
-            Console.WriteLine($"Dettaglio: {ex.Message}");
+            Console.WriteLine($"ERROR: Unable to connect to Qdrant!");
+            Console.WriteLine($"Detail: {ex.Message}");
             Console.WriteLine();
-            Console.WriteLine("Assicurati che:");
-            Console.WriteLine("1. Docker Desktop sia in esecuzione");
-            Console.WriteLine("2. Il container Qdrant sia avviato:");
+            Console.WriteLine("Make sure that:");
+            Console.WriteLine("1. Docker Desktop is running");
+            Console.WriteLine("2. The Qdrant container is started:");
             Console.WriteLine("   docker compose up -d qdrant");
             Console.WriteLine();
-            Console.WriteLine("Premi un tasto per tornare al menu...");
+            Console.WriteLine("Press any key to return to menu...");
             Console.ReadKey();
             return;
         }
@@ -98,94 +98,94 @@ public static class QdrantDemo
         var apiKey = ConfigurationHelper.GetOpenAiApiKey();
         var openAiClient = new OpenAIClient(apiKey);
 
-        // IEmbeddingGenerator<string, Embedding<float>> è l'interfaccia standard
-        // di Microsoft.Extensions.AI per generare embedding
+        // IEmbeddingGenerator<string, Embedding<float>> is the standard interface
+        // from Microsoft.Extensions.AI for generating embeddings
         var embeddingGenerator = openAiClient
             .GetEmbeddingClient(EmbeddingModel)
             .AsIEmbeddingGenerator();
 
         Console.WriteLine($"Embedding model: {EmbeddingModel}");
-        Console.WriteLine("Embedding generator pronto!");
+        Console.WriteLine("Embedding generator ready!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 3: CREAZIONE VECTOR STORE E COLLECTION
+        // STEP 3: CREATE VECTOR STORE AND COLLECTION
         // ====================================================================
-        ConsoleHelper.WriteSeparator("3. Creazione Vector Store");
+        ConsoleHelper.WriteSeparator("3. Creating Vector Store");
 
-        // QdrantVectorStore implementa IVectorStore di Microsoft.Extensions.VectorData
-        // Il secondo parametro (ownsClient) indica se il vector store deve
-        // gestire il ciclo di vita del client Qdrant
+        // QdrantVectorStore implements IVectorStore from Microsoft.Extensions.VectorData
+        // The second parameter (ownsClient) indicates whether the vector store should
+        // manage the Qdrant client lifecycle
         var vectorStore = new QdrantVectorStore(qdrantClient, ownsClient: false);
 
-        // GetCollection<TKey, TRecord> ottiene un riferimento alla collezione
-        // NOTA: Qdrant richiede chiavi Guid o ulong, non string
-        // Usiamo DocumentChunkQdrant che ha indice HNSW
+        // GetCollection<TKey, TRecord> gets a reference to the collection
+        // NOTE: Qdrant requires Guid or ulong keys, not string
+        // We use DocumentChunkQdrant which has HNSW index
         var collection = vectorStore.GetCollection<Guid, DocumentChunkQdrant>(CollectionName);
 
-        // EnsureCollectionExistsAsync crea la collezione se non esiste
-        // La struttura viene inferita dagli attributi [VectorStore*] della classe
+        // EnsureCollectionExistsAsync creates the collection if it doesn't exist
+        // The structure is inferred from the [VectorStore*] attributes of the class
         await collection.EnsureCollectionExistsAsync();
 
-        Console.WriteLine($"Collezione '{CollectionName}' pronta!");
+        Console.WriteLine($"Collection '{CollectionName}' ready!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 4: INDICIZZAZIONE DOCUMENTI
+        // STEP 4: INDEX DOCUMENTS
         // ====================================================================
-        ConsoleHelper.WriteSeparator("4. Indicizzazione Documenti");
+        ConsoleHelper.WriteSeparator("4. Indexing Documents");
 
-        // Otteniamo tutti i chunk dai documenti di esempio (versione Qdrant)
+        // Get all chunks from sample documents (Qdrant version)
         var chunks = SampleDocuments.GetChunksForQdrant().ToList();
-        Console.WriteLine($"Documenti da indicizzare: {SampleDocuments.Documents.Length}");
-        Console.WriteLine($"Chunk totali: {chunks.Count}");
+        Console.WriteLine($"Documents to index: {SampleDocuments.Documents.Length}");
+        Console.WriteLine($"Total chunks: {chunks.Count}");
         Console.WriteLine();
 
-        // IMPORTANTE: Per Qdrant (e SQL Server) dobbiamo generare gli embedding
-        // manualmente PRIMA dell'inserimento. InMemoryVectorStore lo fa automaticamente,
-        // ma i connector per database reali richiedono embedding pre-calcolati.
+        // IMPORTANT: For Qdrant (and SQL Server) we must generate embeddings
+        // manually BEFORE insertion. InMemoryVectorStore does this automatically,
+        // but connectors for real databases require pre-calculated embeddings.
 
-        Console.WriteLine("Generazione embedding...");
+        Console.WriteLine("Generating embeddings...");
 
-        // Generiamo gli embedding per tutti i chunk in batch (più efficiente)
+        // Generate embeddings for all chunks in batch (more efficient)
         var textsForEmbedding = chunks.Select(c => c.GetTextForEmbedding()).ToList();
         var embeddings = await embeddingGenerator.GenerateAsync(textsForEmbedding);
 
-        // Associamo ogni embedding al rispettivo chunk
+        // Associate each embedding with its respective chunk
         for (int i = 0; i < chunks.Count; i++)
         {
             chunks[i].Embedding = embeddings[i].Vector;
         }
 
-        Console.WriteLine($"   Generati {embeddings.Count} embedding!");
+        Console.WriteLine($"   Generated {embeddings.Count} embeddings!");
         Console.WriteLine();
 
-        Console.WriteLine("Inserimento nel vector store...");
+        Console.WriteLine("Inserting into vector store...");
 
         var count = 0;
         foreach (var chunk in chunks)
         {
-            // UpsertAsync inserisce o aggiorna se l'ID esiste già
+            // UpsertAsync inserts or updates if the ID already exists
             await collection.UpsertAsync(chunk);
             count++;
-            Console.Write($"\r   Chunk inseriti: {count}/{chunks.Count}");
+            Console.Write($"\r   Chunks inserted: {count}/{chunks.Count}");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Indicizzazione completata!");
+        Console.WriteLine("Indexing completed!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 5: RICERCA SEMANTICA
+        // STEP 5: SEMANTIC SEARCH
         // ====================================================================
-        ConsoleHelper.WriteSeparator("5. Test Ricerca Semantica");
+        ConsoleHelper.WriteSeparator("5. Semantic Search Test");
 
-        // Query di test
+        // Test queries
         var testQueries = new[]
         {
-            "Come funziona LINQ in C#?",
-            "Cosa sono le transazioni ACID?",
-            "Cos'è il RAG e come funziona?"
+            "How does LINQ work in C#?",
+            "What are ACID transactions?",
+            "What is RAG and how does it work?"
         };
 
         foreach (var query in testQueries)
@@ -193,23 +193,23 @@ public static class QdrantDemo
             Console.WriteLine($"Query: \"{query}\"");
             Console.WriteLine();
 
-            // Generiamo l'embedding della query manualmente
+            // Generate the query embedding manually
             var queryEmbedding = await embeddingGenerator.GenerateAsync(query);
 
-            // Creiamo le opzioni di ricerca
+            // Create search options
             var searchOptions = new VectorSearchOptions<DocumentChunkQdrant>
             {
                 IncludeVectors = false
             };
 
-            // Cerchiamo i chunk più simili usando il vettore
-            // SearchAsync(vector, topK, options) - topK è un parametro separato
+            // Search for most similar chunks using the vector
+            // SearchAsync(vector, topK, options) - topK is a separate parameter
             var searchResults = collection.SearchAsync(queryEmbedding.Vector, 3, searchOptions);
 
-            Console.WriteLine("Risultati:");
+            Console.WriteLine("Results:");
             await foreach (var result in searchResults)
             {
-                // Score indica la similarità (più alto = più simile per cosine)
+                // Score indicates similarity (higher = more similar for cosine)
                 Console.WriteLine($"   [{result.Score:F4}] {result.Record.Title} (chunk {result.Record.ChunkIndex})");
                 Console.WriteLine($"            {Truncate(result.Record.Content, 80)}");
             }
@@ -218,20 +218,20 @@ public static class QdrantDemo
         }
 
         // ====================================================================
-        // STEP 6: RAG COMPLETO CON LLM
+        // STEP 6: COMPLETE RAG WITH LLM
         // ====================================================================
-        ConsoleHelper.WriteSeparator("6. RAG Completo con LLM");
+        ConsoleHelper.WriteSeparator("6. Complete RAG with LLM");
 
         var chatClient = openAiClient.GetChatClient(ChatModel).AsIChatClient();
 
-        Console.WriteLine("Ora puoi fare domande sui documenti indicizzati.");
-        Console.WriteLine("I chunk rilevanti verranno recuperati e passati all'LLM.");
-        Console.WriteLine("Scrivi 'exit' per tornare al menu.");
+        Console.WriteLine("You can now ask questions about the indexed documents.");
+        Console.WriteLine("Relevant chunks will be retrieved and passed to the LLM.");
+        Console.WriteLine("Type 'exit' to return to menu.");
         Console.WriteLine();
 
         while (true)
         {
-            Console.Write("Domanda: ");
+            Console.Write("Question: ");
             var question = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(question))
@@ -242,10 +242,10 @@ public static class QdrantDemo
 
             Console.WriteLine();
 
-            // 1. Genera embedding della domanda
+            // 1. Generate question embedding
             var questionEmbedding = await embeddingGenerator.GenerateAsync(question);
 
-            // 2. Recupera i chunk rilevanti
+            // 2. Retrieve relevant chunks
             var searchOptions = new VectorSearchOptions<DocumentChunkQdrant>
             {
                 IncludeVectors = false
@@ -254,7 +254,7 @@ public static class QdrantDemo
             var relevantChunks = collection.SearchAsync(questionEmbedding.Vector, 3, searchOptions);
 
             var context = new List<string>();
-            Console.WriteLine("Chunk recuperati:");
+            Console.WriteLine("Retrieved chunks:");
             await foreach (var result in relevantChunks)
             {
                 context.Add(result.Record.Content);
@@ -262,21 +262,21 @@ public static class QdrantDemo
             }
             Console.WriteLine();
 
-            // 3. Costruisci il prompt con contesto RAG
+            // 3. Build prompt with RAG context
             var ragPrompt = $"""
-                Usa SOLO le seguenti informazioni per rispondere alla domanda.
-                Se le informazioni non sono sufficienti, dillo chiaramente.
+                Use ONLY the following information to answer the question.
+                If the information is not sufficient, say so clearly.
 
-                CONTESTO:
+                CONTEXT:
                 {string.Join("\n\n---\n\n", context)}
 
-                DOMANDA: {question}
+                QUESTION: {question}
 
-                RISPOSTA:
+                ANSWER:
                 """;
 
-            // 4. Genera risposta con LLM
-            Console.Write("Risposta: ");
+            // 4. Generate answer with LLM
+            Console.Write("Answer: ");
             await foreach (var chunk in chatClient.GetStreamingResponseAsync(ragPrompt))
             {
                 Console.Write(chunk);
@@ -286,32 +286,32 @@ public static class QdrantDemo
         }
 
         // ====================================================================
-        // STEP 7: PULIZIA (OPZIONALE)
+        // STEP 7: CLEANUP (OPTIONAL)
         // ====================================================================
-        ConsoleHelper.WriteSeparator("7. Pulizia");
+        ConsoleHelper.WriteSeparator("7. Cleanup");
 
-        Console.Write("Vuoi eliminare la collezione? (s/n): ");
+        Console.Write("Do you want to delete the collection? (y/n): ");
         var delete = Console.ReadLine();
 
-        if (delete?.Equals("s", StringComparison.OrdinalIgnoreCase) == true)
+        if (delete?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
         {
             await collection.EnsureCollectionDeletedAsync();
-            Console.WriteLine($"Collezione '{CollectionName}' eliminata!");
+            Console.WriteLine($"Collection '{CollectionName}' deleted!");
         }
         else
         {
-            Console.WriteLine("Collezione mantenuta per usi futuri.");
+            Console.WriteLine("Collection kept for future use.");
             Console.WriteLine($"Dashboard: http://localhost:6333/dashboard");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Premi un tasto per tornare al menu...");
+        Console.WriteLine("Press any key to return to menu...");
         Console.ReadKey();
     }
 
     private static string Truncate(string text, int maxLength)
     {
-        // Rimuovi newline e spazi extra
+        // Remove newlines and extra spaces
         var clean = text.Replace("\n", " ").Replace("\r", "").Trim();
         while (clean.Contains("  "))
             clean = clean.Replace("  ", " ");

@@ -2,29 +2,29 @@
 // 07. DEV TEAM - MULTI-AGENT
 // FILE: TeamOrchestrator.cs
 // ============================================================================
-// Questo file implementa l'orchestratore che coordina il team di agenti.
+// This file implements the orchestrator that coordinates the team of agents.
 //
-// PATTERN DI ORCHESTRAZIONE SUPPORTATI:
+// SUPPORTED ORCHESTRATION PATTERNS:
 //
-// 1. SEQUENZIALE (Pipeline):
+// 1. SEQUENTIAL (Pipeline):
 //    ┌──────────┐    ┌──────────┐    ┌──────────┐
 //    │ Architect│ ─► │ Developer│ ─► │ Reviewer │
 //    └──────────┘    └──────────┘    └──────────┘
-//    L'output di un agente diventa input del successivo.
+//    The output of one agent becomes input for the next.
 //
-// 2. PARALLELO (Fan-out / Fan-in):
+// 2. PARALLEL (Fan-out / Fan-in):
 //    ┌──────────┐
 //    │ Architect│ ─┐
 //    └──────────┘  │
-//                  ├─► Aggregazione risultati
+//                  ├─► Result aggregation
 //    ┌──────────┐  │
 //    │ Developer│ ─┘
 //    └──────────┘
-//    Più agenti lavorano in parallelo, poi si aggregano i risultati.
+//    Multiple agents work in parallel, then results are aggregated.
 //
-// 3. ROUTING (Condizionale):
+// 3. ROUTING (Conditional):
 //    ┌──────────────┐
-//    │   Analisi    │
+//    │   Analysis   │
 //    └──────┬───────┘
 //           │
 //     ┌─────┴─────┐
@@ -34,7 +34,7 @@
 //     ▼           ▼
 //  Architect   Developer
 //
-//    Si sceglie quale agente coinvolgere in base al contenuto.
+//    Choose which agent to involve based on content.
 // ============================================================================
 
 using DevTeam.MultiAgent.Agents;
@@ -43,106 +43,106 @@ using OpenAI.Chat;
 namespace DevTeam.MultiAgent.Orchestration;
 
 /// <summary>
-/// Tipo di workflow per l'orchestrazione.
+/// Workflow type for orchestration.
 /// </summary>
 public enum WorkflowType
 {
     /// <summary>
-    /// Gli agenti lavorano in sequenza (pipeline).
+    /// Agents work in sequence (pipeline).
     /// </summary>
     Sequential,
 
     /// <summary>
-    /// Gli agenti lavorano in parallelo.
+    /// Agents work in parallel.
     /// </summary>
     Parallel,
 
     /// <summary>
-    /// Un agente viene scelto in base al contenuto.
+    /// An agent is chosen based on content.
     /// </summary>
     Routed
 }
 
 /// <summary>
-/// Risultato di un'operazione del team.
+/// Result of a team operation.
 /// </summary>
 public class TeamResult
 {
     /// <summary>
-    /// Membro che ha prodotto il risultato.
+    /// Member that produced the result.
     /// </summary>
     public required TeamMember Member { get; init; }
 
     /// <summary>
-    /// Risposta dell'agente.
+    /// Agent's response.
     /// </summary>
     public required string Response { get; init; }
 
     /// <summary>
-    /// Tempo di esecuzione.
+    /// Execution time.
     /// </summary>
     public TimeSpan Duration { get; init; }
 }
 
 /// <summary>
-/// Orchestratore per il team di agenti.
+/// Orchestrator for the team of agents.
 ///
-/// Gestisce:
-/// - Creazione e configurazione del team
-/// - Esecuzione di workflow multi-agente
-/// - Aggregazione dei risultati
-/// - Logging delle operazioni
+/// Manages:
+/// - Team creation and configuration
+/// - Multi-agent workflow execution
+/// - Result aggregation
+/// - Operation logging
 /// </summary>
 public class TeamOrchestrator
 {
     // ========================================================================
-    // MEMBRI DEL TEAM
+    // TEAM MEMBERS
     // ========================================================================
 
     private readonly Dictionary<TeamRole, TeamMember> _team = new();
     private readonly ChatClient _chatClient;
 
     /// <summary>
-    /// Evento per logging delle operazioni.
+    /// Event for operation logging.
     /// </summary>
     public event Action<string>? OnLog;
 
     // ========================================================================
-    // COSTRUTTORE
+    // CONSTRUCTOR
     // ========================================================================
 
     /// <summary>
-    /// Crea un nuovo orchestratore.
+    /// Creates a new orchestrator.
     /// </summary>
-    /// <param name="chatClient">Client OpenAI da usare per gli agenti</param>
+    /// <param name="chatClient">OpenAI client to use for agents</param>
     public TeamOrchestrator(ChatClient chatClient)
     {
         _chatClient = chatClient;
     }
 
     // ========================================================================
-    // GESTIONE TEAM
+    // TEAM MANAGEMENT
     // ========================================================================
 
     /// <summary>
-    /// Aggiunge un membro al team.
+    /// Adds a member to the team.
     /// </summary>
     public TeamMember AddMember(TeamRole role)
     {
         if (_team.ContainsKey(role))
         {
-            Log($"⚠️ Membro {role} già presente, viene sostituito");
+            Log($"⚠️ Member {role} already present, being replaced");
         }
 
         var member = TeamMember.Create(role, _chatClient);
         _team[role] = member;
 
-        Log($"✅ {member} aggiunto al team");
+        Log($"✅ {member} added to team");
         return member;
     }
 
     /// <summary>
-    /// Ottiene un membro del team.
+    /// Gets a team member.
     /// </summary>
     public TeamMember? GetMember(TeamRole role)
     {
@@ -150,12 +150,12 @@ public class TeamOrchestrator
     }
 
     /// <summary>
-    /// Ottiene tutti i membri del team.
+    /// Gets all team members.
     /// </summary>
     public IEnumerable<TeamMember> GetAllMembers() => _team.Values;
 
     /// <summary>
-    /// Inizializza il team completo.
+    /// Initializes the full team.
     /// </summary>
     public void InitializeFullTeam()
     {
@@ -166,23 +166,23 @@ public class TeamOrchestrator
     }
 
     // ========================================================================
-    // WORKFLOW SEQUENZIALE
+    // SEQUENTIAL WORKFLOW
     // ========================================================================
 
     /// <summary>
-    /// Esegue un workflow sequenziale (pipeline).
+    /// Executes a sequential workflow (pipeline).
     ///
-    /// Ogni agente riceve l'output del precedente come input.
-    /// Utile per: Design → Implement → Review
+    /// Each agent receives the output of the previous one as input.
+    /// Useful for: Design → Implement → Review
     /// </summary>
-    /// <param name="initialPrompt">Prompt iniziale</param>
-    /// <param name="roles">Sequenza di ruoli da coinvolgere</param>
-    /// <returns>Lista dei risultati in ordine</returns>
+    /// <param name="initialPrompt">Initial prompt</param>
+    /// <param name="roles">Sequence of roles to involve</param>
+    /// <returns>List of results in order</returns>
     public async Task<List<TeamResult>> RunSequentialAsync(
         string initialPrompt,
         params TeamRole[] roles)
     {
-        Log($"🔄 Avvio workflow SEQUENZIALE con {roles.Length} step");
+        Log($"🔄 Starting SEQUENTIAL workflow with {roles.Length} steps");
 
         var results = new List<TeamResult>();
         var currentInput = initialPrompt;
@@ -192,17 +192,17 @@ public class TeamOrchestrator
             var member = GetMember(role);
             if (member == null)
             {
-                Log($"❌ Membro {role} non trovato, skip");
+                Log($"❌ Member {role} not found, skip");
                 continue;
             }
 
-            Log($"   ► {member} sta elaborando...");
+            Log($"   ► {member} is processing...");
 
             var startTime = DateTime.UtcNow;
 
-            // Costruisci il prompt includendo il contesto precedente
+            // Build the prompt including previous context
             var prompt = results.Count > 0
-                ? $"Contesto dal passaggio precedente:\n{currentInput}\n\nOra è il tuo turno. Procedi con il tuo compito."
+                ? $"Context from previous step:\n{currentInput}\n\nNow it's your turn. Proceed with your task."
                 : currentInput;
 
             var response = await member.AskAsync(prompt);
@@ -217,33 +217,33 @@ public class TeamOrchestrator
             };
 
             results.Add(result);
-            currentInput = response; // L'output diventa input per il prossimo
+            currentInput = response; // Output becomes input for the next
 
-            Log($"   ✓ {member} completato in {duration.TotalSeconds:F1}s");
+            Log($"   ✓ {member} completed in {duration.TotalSeconds:F1}s");
         }
 
-        Log($"✅ Workflow sequenziale completato: {results.Count} step");
+        Log($"✅ Sequential workflow completed: {results.Count} steps");
         return results;
     }
 
     // ========================================================================
-    // WORKFLOW PARALLELO
+    // PARALLEL WORKFLOW
     // ========================================================================
 
     /// <summary>
-    /// Esegue un workflow parallelo (fan-out).
+    /// Executes a parallel workflow (fan-out).
     ///
-    /// Tutti gli agenti ricevono lo stesso input e lavorano in parallelo.
-    /// Utile per: ottenere prospettive diverse sullo stesso problema.
+    /// All agents receive the same input and work in parallel.
+    /// Useful for: getting different perspectives on the same problem.
     /// </summary>
-    /// <param name="prompt">Prompt da inviare a tutti</param>
-    /// <param name="roles">Ruoli da coinvolgere in parallelo</param>
-    /// <returns>Lista dei risultati (ordine non garantito)</returns>
+    /// <param name="prompt">Prompt to send to all</param>
+    /// <param name="roles">Roles to involve in parallel</param>
+    /// <returns>List of results (order not guaranteed)</returns>
     public async Task<List<TeamResult>> RunParallelAsync(
         string prompt,
         params TeamRole[] roles)
     {
-        Log($"⚡ Avvio workflow PARALLELO con {roles.Length} agenti");
+        Log($"⚡ Starting PARALLEL workflow with {roles.Length} agents");
 
         var tasks = new List<Task<TeamResult>>();
 
@@ -252,13 +252,13 @@ public class TeamOrchestrator
             var member = GetMember(role);
             if (member == null)
             {
-                Log($"❌ Membro {role} non trovato, skip");
+                Log($"❌ Member {role} not found, skip");
                 continue;
             }
 
-            Log($"   ► {member} avviato in parallelo");
+            Log($"   ► {member} started in parallel");
 
-            // Crea un task per ogni agente
+            // Create a task for each agent
             var task = Task.Run(async () =>
             {
                 var startTime = DateTime.UtcNow;
@@ -276,80 +276,80 @@ public class TeamOrchestrator
             tasks.Add(task);
         }
 
-        // Attendi tutti i task
+        // Wait for all tasks
         var results = await Task.WhenAll(tasks);
 
         foreach (var result in results)
         {
-            Log($"   ✓ {result.Member} completato in {result.Duration.TotalSeconds:F1}s");
+            Log($"   ✓ {result.Member} completed in {result.Duration.TotalSeconds:F1}s");
         }
 
-        Log($"✅ Workflow parallelo completato: {results.Length} risultati");
+        Log($"✅ Parallel workflow completed: {results.Length} results");
         return results.ToList();
     }
 
     // ========================================================================
-    // WORKFLOW CON ROUTING
+    // ROUTED WORKFLOW
     // ========================================================================
 
     /// <summary>
-    /// Esegue un workflow con routing basato sul contenuto.
+    /// Executes a workflow with content-based routing.
     ///
-    /// Il TeamLead analizza la richiesta e decide quale agente coinvolgere.
+    /// The TeamLead analyzes the request and decides which agent to involve.
     /// </summary>
-    /// <param name="request">Richiesta dell'utente</param>
-    /// <returns>Risultato con l'agente selezionato</returns>
+    /// <param name="request">User's request</param>
+    /// <returns>Result with the selected agent</returns>
     public async Task<TeamResult> RunRoutedAsync(string request)
     {
-        Log($"🔀 Avvio workflow ROUTED");
+        Log($"🔀 Starting ROUTED workflow");
 
         var teamLead = GetMember(TeamRole.TeamLead);
         if (teamLead == null)
         {
-            throw new InvalidOperationException("TeamLead non trovato nel team");
+            throw new InvalidOperationException("TeamLead not found in team");
         }
 
-        // Step 1: TeamLead analizza e decide
-        Log($"   ► {teamLead} sta analizzando la richiesta...");
+        // Step 1: TeamLead analyzes and decides
+        Log($"   ► {teamLead} is analyzing the request...");
 
         var analysisPrompt = $"""
-            Analizza questa richiesta e decidi quale membro del team dovrebbe gestirla.
+            Analyze this request and decide which team member should handle it.
 
-            RICHIESTA: {request}
+            REQUEST: {request}
 
-            MEMBRI DISPONIBILI:
-            - ARCHITECT: per questioni di design, architettura, pattern, decisioni tecniche
-            - DEVELOPER: per scrivere codice, implementare funzionalità, correggere bug
-            - REVIEWER: per revisionare codice esistente, trovare problemi, suggerire miglioramenti
+            AVAILABLE MEMBERS:
+            - ARCHITECT: for design issues, architecture, patterns, technical decisions
+            - DEVELOPER: to write code, implement features, fix bugs
+            - REVIEWER: to review existing code, find problems, suggest improvements
 
-            Rispondi SOLO con il nome del membro più appropriato (ARCHITECT, DEVELOPER, o REVIEWER)
-            seguito da una breve spiegazione del perché.
+            Respond ONLY with the name of the most appropriate member (ARCHITECT, DEVELOPER, or REVIEWER)
+            followed by a brief explanation of why.
 
-            Formato: NOME_MEMBRO | Motivazione
+            Format: MEMBER_NAME | Reason
             """;
 
         var analysisResponse = await teamLead.AskAsync(analysisPrompt);
-        Log($"   ✓ Analisi: {analysisResponse}");
+        Log($"   ✓ Analysis: {analysisResponse}");
 
-        // Step 2: Determina il ruolo selezionato
+        // Step 2: Determine the selected role
         var selectedRole = DetermineRoleFromResponse(analysisResponse);
-        Log($"   → Routing verso: {selectedRole}");
+        Log($"   → Routing to: {selectedRole}");
 
-        // Step 3: Invia la richiesta all'agente selezionato
+        // Step 3: Send the request to the selected agent
         var selectedMember = GetMember(selectedRole);
         if (selectedMember == null)
         {
-            // Fallback al developer
+            // Fallback to developer
             selectedMember = GetMember(TeamRole.Developer) ?? teamLead;
         }
 
-        Log($"   ► {selectedMember} sta elaborando...");
+        Log($"   ► {selectedMember} is processing...");
 
         var startTime = DateTime.UtcNow;
         var response = await selectedMember.AskAsync(request);
         var duration = DateTime.UtcNow - startTime;
 
-        Log($"   ✓ {selectedMember} completato in {duration.TotalSeconds:F1}s");
+        Log($"   ✓ {selectedMember} completed in {duration.TotalSeconds:F1}s");
 
         return new TeamResult
         {
@@ -360,7 +360,7 @@ public class TeamOrchestrator
     }
 
     /// <summary>
-    /// Determina il ruolo dalla risposta del TeamLead.
+    /// Determines the role from the TeamLead's response.
     /// </summary>
     private TeamRole DetermineRoleFromResponse(string response)
     {
@@ -372,108 +372,108 @@ public class TeamOrchestrator
         if (upper.Contains("REVIEWER") || upper.Contains("REVIEW"))
             return TeamRole.Reviewer;
 
-        // Default a Developer
+        // Default to Developer
         return TeamRole.Developer;
     }
 
     // ========================================================================
-    // WORKFLOW COMPLETO: DESIGN-IMPLEMENT-REVIEW
+    // FULL WORKFLOW: DESIGN-IMPLEMENT-REVIEW
     // ========================================================================
 
     /// <summary>
-    /// Esegue il workflow completo di sviluppo.
+    /// Executes the full development workflow.
     ///
-    /// 1. Architect progetta la soluzione
-    /// 2. Developer implementa il codice
-    /// 3. Reviewer revisiona il risultato
+    /// 1. Architect designs the solution
+    /// 2. Developer implements the code
+    /// 3. Reviewer reviews the result
     /// </summary>
-    /// <param name="requirement">Requisito da implementare</param>
-    /// <returns>Risultati di tutti i passaggi</returns>
+    /// <param name="requirement">Requirement to implement</param>
+    /// <returns>Results from all steps</returns>
     public async Task<List<TeamResult>> RunFullDevelopmentCycleAsync(string requirement)
     {
-        Log($"🚀 Avvio CICLO DI SVILUPPO COMPLETO");
-        Log($"   Requisito: {requirement}");
+        Log($"🚀 Starting FULL DEVELOPMENT CYCLE");
+        Log($"   Requirement: {requirement}");
 
         // Step 1: Architect
         var architect = GetMember(TeamRole.Architect);
-        if (architect == null) throw new InvalidOperationException("Architect mancante");
+        if (architect == null) throw new InvalidOperationException("Architect missing");
 
-        Log($"\n📐 FASE 1: DESIGN");
-        Log($"   ► {architect} sta progettando...");
+        Log($"\n📐 PHASE 1: DESIGN");
+        Log($"   ► {architect} is designing...");
 
         var designPrompt = $"""
-            Progetta una soluzione per questo requisito:
+            Design a solution for this requirement:
 
             {requirement}
 
-            Fornisci:
-            1. Architettura proposta
-            2. Componenti principali
-            3. Interfacce tra componenti
-            4. Considerazioni tecniche
+            Provide:
+            1. Proposed architecture
+            2. Main components
+            3. Interfaces between components
+            4. Technical considerations
             """;
 
         var designStart = DateTime.UtcNow;
         var design = await architect.AskAsync(designPrompt);
         var designDuration = DateTime.UtcNow - designStart;
 
-        Log($"   ✓ Design completato in {designDuration.TotalSeconds:F1}s");
+        Log($"   ✓ Design completed in {designDuration.TotalSeconds:F1}s");
 
         // Step 2: Developer
         var developer = GetMember(TeamRole.Developer);
-        if (developer == null) throw new InvalidOperationException("Developer mancante");
+        if (developer == null) throw new InvalidOperationException("Developer missing");
 
-        Log($"\n💻 FASE 2: IMPLEMENTAZIONE");
-        Log($"   ► {developer} sta implementando...");
+        Log($"\n💻 PHASE 2: IMPLEMENTATION");
+        Log($"   ► {developer} is implementing...");
 
         var implementPrompt = $"""
-            Implementa il codice seguendo questo design:
+            Implement the code following this design:
 
             === DESIGN ===
             {design}
-            === FINE DESIGN ===
+            === END DESIGN ===
 
-            Scrivi il codice C# completo con:
-            - Classi e interfacce necessarie
-            - Implementazione della logica
-            - Gestione errori appropriata
-            - Commenti dove utile
+            Write complete C# code with:
+            - Necessary classes and interfaces
+            - Logic implementation
+            - Appropriate error handling
+            - Comments where useful
             """;
 
         var implStart = DateTime.UtcNow;
         var implementation = await developer.AskAsync(implementPrompt);
         var implDuration = DateTime.UtcNow - implStart;
 
-        Log($"   ✓ Implementazione completata in {implDuration.TotalSeconds:F1}s");
+        Log($"   ✓ Implementation completed in {implDuration.TotalSeconds:F1}s");
 
         // Step 3: Reviewer
         var reviewer = GetMember(TeamRole.Reviewer);
-        if (reviewer == null) throw new InvalidOperationException("Reviewer mancante");
+        if (reviewer == null) throw new InvalidOperationException("Reviewer missing");
 
-        Log($"\n🔍 FASE 3: CODE REVIEW");
-        Log($"   ► {reviewer} sta revisionando...");
+        Log($"\n🔍 PHASE 3: CODE REVIEW");
+        Log($"   ► {reviewer} is reviewing...");
 
         var reviewPrompt = $"""
-            Revisiona questo codice:
+            Review this code:
 
-            === CODICE ===
+            === CODE ===
             {implementation}
-            === FINE CODICE ===
+            === END CODE ===
 
-            Fornisci una review completa con:
-            ✅ Punti positivi
-            ⚠️ Suggerimenti di miglioramento
-            ❌ Problemi da correggere
-            📊 Voto complessivo (1-10)
+            Provide a complete review with:
+            ✅ Positive points
+            ⚠️ Improvement suggestions
+            ❌ Problems to fix
+            📊 Overall score (1-10)
             """;
 
         var reviewStart = DateTime.UtcNow;
         var review = await reviewer.AskAsync(reviewPrompt);
         var reviewDuration = DateTime.UtcNow - reviewStart;
 
-        Log($"   ✓ Review completata in {reviewDuration.TotalSeconds:F1}s");
+        Log($"   ✓ Review completed in {reviewDuration.TotalSeconds:F1}s");
 
-        Log($"\n✅ CICLO COMPLETO TERMINATO");
+        Log($"\n✅ FULL CYCLE COMPLETED");
 
         return new List<TeamResult>
         {

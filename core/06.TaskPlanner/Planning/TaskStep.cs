@@ -2,133 +2,133 @@
 // 06. TASK PLANNER
 // FILE: TaskStep.cs
 // ============================================================================
-// Questo file definisce il modello per uno step di un piano di task.
+// This file defines the model for a step in a task plan.
 //
-// CONCETTI CHIAVE:
+// KEY CONCEPTS:
 //
-// 1. DECOMPOSIZIONE DEL TASK:
+// 1. TASK DECOMPOSITION:
 //    ┌────────────────────────────────────────────────────────────────────┐
-//    │ Obiettivo: "Crea un progetto .NET con unit test"                   │
+//    │ Objective: "Create a .NET project with unit tests"                 │
 //    └────────────────────────────────────────────────────────────────────┘
 //                              │
 //                              ▼
 //    ┌─────────────────────────────────────────────────────────────────────┐
-//    │ Step 1: Creare cartella progetto                    [✓ Completed]  │
-//    │ Step 2: Inizializzare progetto con dotnet new       [► In Progress] │
-//    │ Step 3: Aggiungere progetto test                    [○ Pending]     │
-//    │ Step 4: Scrivere primo test                         [○ Pending]     │
-//    │ Step 5: Eseguire test                               [○ Pending]     │
+//    │ Step 1: Create project folder                       [✓ Completed]  │
+//    │ Step 2: Initialize project with dotnet new          [► In Progress] │
+//    │ Step 3: Add test project                            [○ Pending]     │
+//    │ Step 4: Write first test                            [○ Pending]     │
+//    │ Step 5: Run tests                                   [○ Pending]     │
 //    └─────────────────────────────────────────────────────────────────────┘
 //
-// 2. STATO DELLO STEP:
-//    - Pending: non ancora iniziato
-//    - InProgress: in esecuzione
-//    - Completed: completato con successo
-//    - Failed: fallito (con messaggio di errore)
-//    - Skipped: saltato (dipendenza fallita)
+// 2. STEP STATUS:
+//    - Pending: not yet started
+//    - InProgress: executing
+//    - Completed: completed successfully
+//    - Failed: failed (with error message)
+//    - Skipped: skipped (failed dependency)
 // ============================================================================
 
 namespace TaskPlanner.Planning;
 
 /// <summary>
-/// Stati possibili di uno step del task.
+/// Possible states of a task step.
 /// </summary>
 public enum TaskStepStatus
 {
     /// <summary>
-    /// Step non ancora iniziato.
+    /// Step not yet started.
     /// </summary>
     Pending,
 
     /// <summary>
-    /// Step attualmente in esecuzione.
+    /// Step currently executing.
     /// </summary>
     InProgress,
 
     /// <summary>
-    /// Step completato con successo.
+    /// Step completed successfully.
     /// </summary>
     Completed,
 
     /// <summary>
-    /// Step fallito durante l'esecuzione.
+    /// Step failed during execution.
     /// </summary>
     Failed,
 
     /// <summary>
-    /// Step saltato (es: dipendenza fallita).
+    /// Step skipped (e.g.: failed dependency).
     /// </summary>
     Skipped
 }
 
 /// <summary>
-/// Rappresenta un singolo step atomico di un piano di esecuzione.
+/// Represents a single atomic step of an execution plan.
 ///
-/// CARATTERISTICHE DI UN BUON STEP:
-/// 1. Atomico: una singola azione ben definita
-/// 2. Verificabile: si può determinare se è completato
-/// 3. Indipendente: minime dipendenze dagli altri step
-/// 4. Descrivibile: chiaro cosa fa e perché
+/// CHARACTERISTICS OF A GOOD STEP:
+/// 1. Atomic: a single well-defined action
+/// 2. Verifiable: can determine if it is completed
+/// 3. Independent: minimal dependencies on other steps
+/// 4. Describable: clear what it does and why
 /// </summary>
 public class TaskStep
 {
     /// <summary>
-    /// Identificatore univoco dello step (1-based).
+    /// Unique identifier of the step (1-based).
     /// </summary>
     public int Id { get; init; }
 
     /// <summary>
-    /// Descrizione breve dello step (azione in forma imperativa).
-    /// Es: "Creare cartella progetto", "Eseguire unit test"
+    /// Short description of the step (action in imperative form).
+    /// E.g.: "Create project folder", "Run unit tests"
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
-    /// Descrizione estesa con dettagli sull'implementazione.
-    /// Contiene informazioni specifiche per l'esecuzione.
+    /// Extended description with implementation details.
+    /// Contains specific information for execution.
     /// </summary>
     public string? Details { get; init; }
 
     /// <summary>
-    /// Nome del tool da usare per eseguire questo step.
-    /// Se null, lo step viene eseguito tramite conversazione.
-    /// Es: "CreateDirectory", "RunCommand", "WriteFile"
+    /// Name of the tool to use to execute this step.
+    /// If null, the step is executed via conversation.
+    /// E.g.: "CreateDirectory", "RunCommand", "WriteFile"
     /// </summary>
     public string? ToolName { get; init; }
 
     /// <summary>
-    /// Parametri per il tool (se applicabile).
-    /// Dizionario chiave-valore con i parametri necessari.
+    /// Parameters for the tool (if applicable).
+    /// Key-value dictionary with necessary parameters.
     /// </summary>
     public Dictionary<string, string>? ToolParameters { get; init; }
 
     /// <summary>
-    /// Stato corrente dello step.
+    /// Current state of the step.
     /// </summary>
     public TaskStepStatus Status { get; set; } = TaskStepStatus.Pending;
 
     /// <summary>
-    /// Risultato dell'esecuzione (se completato).
+    /// Result of execution (if completed).
     /// </summary>
     public string? Result { get; set; }
 
     /// <summary>
-    /// Messaggio di errore (se fallito).
+    /// Error message (if failed).
     /// </summary>
     public string? ErrorMessage { get; set; }
 
     /// <summary>
-    /// Timestamp di inizio esecuzione.
+    /// Execution start timestamp.
     /// </summary>
     public DateTime? StartedAt { get; set; }
 
     /// <summary>
-    /// Timestamp di completamento.
+    /// Completion timestamp.
     /// </summary>
     public DateTime? CompletedAt { get; set; }
 
     /// <summary>
-    /// Durata dell'esecuzione.
+    /// Execution duration.
     /// </summary>
     public TimeSpan? Duration =>
         StartedAt.HasValue && CompletedAt.HasValue
@@ -136,18 +136,18 @@ public class TaskStep
             : null;
 
     /// <summary>
-    /// Indica se lo step è in uno stato terminale.
+    /// Indicates whether the step is in a terminal state.
     /// </summary>
     public bool IsTerminal =>
         Status is TaskStepStatus.Completed or TaskStepStatus.Failed or TaskStepStatus.Skipped;
 
     /// <summary>
-    /// Indica se lo step è stato completato con successo.
+    /// Indicates whether the step was completed successfully.
     /// </summary>
     public bool IsSuccess => Status == TaskStepStatus.Completed;
 
     /// <summary>
-    /// Emoji per lo stato corrente.
+    /// Emoji for the current state.
     /// </summary>
     public string StatusEmoji => Status switch
     {
@@ -160,7 +160,7 @@ public class TaskStep
     };
 
     /// <summary>
-    /// Rappresentazione testuale dello step per visualizzazione.
+    /// Textual representation of the step for display.
     /// </summary>
     public override string ToString()
     {
@@ -170,7 +170,7 @@ public class TaskStep
     }
 
     /// <summary>
-    /// Avvia l'esecuzione dello step.
+    /// Starts the execution of the step.
     /// </summary>
     public void Start()
     {
@@ -179,9 +179,9 @@ public class TaskStep
     }
 
     /// <summary>
-    /// Completa lo step con successo.
+    /// Completes the step successfully.
     /// </summary>
-    /// <param name="result">Risultato dell'esecuzione</param>
+    /// <param name="result">Execution result</param>
     public void Complete(string? result = null)
     {
         Status = TaskStepStatus.Completed;
@@ -190,9 +190,9 @@ public class TaskStep
     }
 
     /// <summary>
-    /// Segna lo step come fallito.
+    /// Marks the step as failed.
     /// </summary>
-    /// <param name="errorMessage">Messaggio di errore</param>
+    /// <param name="errorMessage">Error message</param>
     public void Fail(string errorMessage)
     {
         Status = TaskStepStatus.Failed;
@@ -201,9 +201,9 @@ public class TaskStep
     }
 
     /// <summary>
-    /// Segna lo step come saltato.
+    /// Marks the step as skipped.
     /// </summary>
-    /// <param name="reason">Motivo per cui è stato saltato</param>
+    /// <param name="reason">Reason why it was skipped</param>
     public void Skip(string reason)
     {
         Status = TaskStepStatus.Skipped;

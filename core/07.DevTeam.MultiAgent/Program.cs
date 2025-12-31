@@ -3,36 +3,36 @@
 // LEARNING PATH: MICROSOFT AGENT FRAMEWORK
 // ============================================================================
 //
-// OBIETTIVO DI QUESTO PROGETTO:
-// Imparare l'orchestrazione multi-agente con agenti specializzati
-// che collaborano per completare task complessi.
+// OBJECTIVE OF THIS PROJECT:
+// Learn multi-agent orchestration with specialized agents
+// that collaborate to complete complex tasks.
 //
 // SCENARIO:
-// Un team di sviluppo AI composto da:
-// - TeamLead: coordina il lavoro
-// - Architect: progetta l'architettura
-// - Developer: implementa il codice
-// - Reviewer: revisiona il risultato
+// An AI development team consisting of:
+// - TeamLead: coordinates the work
+// - Architect: designs the architecture
+// - Developer: implements the code
+// - Reviewer: reviews the result
 //
-// CONCETTI CHIAVE:
+// KEY CONCEPTS:
 //
-// 1. SPECIALIZZAZIONE:
-//    Ogni agente ha un ruolo specifico con competenze dedicate.
-//    Il system prompt definisce personalità e comportamento.
+// 1. SPECIALIZATION:
+//    Each agent has a specific role with dedicated competencies.
+//    The system prompt defines personality and behavior.
 //
-// 2. ORCHESTRAZIONE:
+// 2. ORCHESTRATION:
 //    ┌─────────────────────────────────────────────────────────────────┐
-//    │ SEQUENZIALE: A → B → C (pipeline)                               │
-//    │ PARALLELO:   A ┬→ Aggregazione                                  │
+//    │ SEQUENTIAL: A → B → C (pipeline)                                │
+//    │ PARALLEL:   A ┬→ Aggregation                                    │
 //    │              B ┘                                                │
-//    │ ROUTING:     Analisi → Scelta agente → Esecuzione              │
+//    │ ROUTING:     Analysis → Agent choice → Execution                │
 //    └─────────────────────────────────────────────────────────────────┘
 //
-// 3. COMUNICAZIONE:
-//    Gli agenti comunicano passandosi il contesto.
-//    L'output di un agente può diventare input per un altro.
+// 3. COMMUNICATION:
+//    Agents communicate by passing context.
+//    The output of one agent can become input for another.
 //
-// ESEGUI CON: dotnet run --project core/07.DevTeam.MultiAgent
+// RUN WITH: dotnet run --project core/07.DevTeam.MultiAgent
 // ============================================================================
 
 using System.Text;
@@ -71,10 +71,10 @@ public static class Program
         var openAiClient = new OpenAIClient(apiKey);
         var chatClient = openAiClient.GetChatClient(ChatModel);
 
-        // Crea l'orchestratore
+        // Create the orchestrator
         var orchestrator = new TeamOrchestrator(chatClient);
 
-        // Registra il callback per i log
+        // Register the callback for logs
         orchestrator.OnLog += message =>
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -82,7 +82,7 @@ public static class Program
             Console.ResetColor();
         };
 
-        // Inizializza il team completo
+        // Initialize the full team
         orchestrator.InitializeFullTeam();
 
         Console.WriteLine();
@@ -127,13 +127,13 @@ public static class Program
                 await RunFreeChatDemo(orchestrator);
                 break;
             default:
-                Console.WriteLine("Scelta non valida, eseguo ciclo completo...");
+                Console.WriteLine("Invalid choice, running full cycle...");
                 await RunFullCycleDemo(orchestrator);
                 break;
         }
 
         // ====================================================================
-        // RIEPILOGO
+        // SUMMARY
         // ====================================================================
         ConsoleHelper.WriteSeparator("Riepilogo");
 
@@ -156,8 +156,8 @@ public static class Program
         ConsoleHelper.WriteSeparator("Demo: Workflow Sequenziale");
 
         Console.WriteLine();
-        Console.WriteLine("In questo workflow, gli agenti lavorano in sequenza.");
-        Console.WriteLine("L'output di ciascuno diventa input per il successivo.");
+        Console.WriteLine("In this workflow, agents work in sequence.");
+        Console.WriteLine("The output of each becomes input for the next.");
         Console.WriteLine();
         Console.Write("Inserisci un requisito da elaborare: ");
 
@@ -175,7 +175,7 @@ public static class Program
             TeamRole.Developer,
             TeamRole.Reviewer);
 
-        // Mostra i risultati
+        // Show the results
         foreach (var result in results)
         {
             ConsoleHelper.WriteSeparator($"Risultato: {result.Member}");
@@ -193,8 +193,8 @@ public static class Program
         ConsoleHelper.WriteSeparator("Demo: Workflow Parallelo");
 
         Console.WriteLine();
-        Console.WriteLine("In questo workflow, tutti gli agenti lavorano in parallelo.");
-        Console.WriteLine("Utile per ottenere prospettive diverse sullo stesso problema.");
+        Console.WriteLine("In this workflow, all agents work in parallel.");
+        Console.WriteLine("Useful for getting different perspectives on the same problem.");
         Console.WriteLine();
         Console.Write("Inserisci una domanda per il team: ");
 
@@ -212,7 +212,7 @@ public static class Program
             TeamRole.Developer,
             TeamRole.Reviewer);
 
-        // Mostra i risultati
+        // Show the results
         foreach (var result in results)
         {
             ConsoleHelper.WriteSeparator($"Prospettiva: {result.Member}");
@@ -230,8 +230,8 @@ public static class Program
         ConsoleHelper.WriteSeparator("Demo: Workflow con Routing");
 
         Console.WriteLine();
-        Console.WriteLine("In questo workflow, il TeamLead analizza la richiesta");
-        Console.WriteLine("e decide quale membro del team è più adatto.");
+        Console.WriteLine("In this workflow, the TeamLead analyzes the request");
+        Console.WriteLine("and decides which team member is most suitable.");
         Console.WriteLine();
         Console.Write("Inserisci una richiesta: ");
 
@@ -259,10 +259,10 @@ public static class Program
         ConsoleHelper.WriteSeparator("Demo: Ciclo di Sviluppo Completo");
 
         Console.WriteLine();
-        Console.WriteLine("Questo workflow simula un ciclo di sviluppo completo:");
-        Console.WriteLine("   1. 🏗️ Architect progetta la soluzione");
-        Console.WriteLine("   2. 💻 Developer implementa il codice");
-        Console.WriteLine("   3. 🔍 Reviewer revisiona il risultato");
+        Console.WriteLine("This workflow simulates a complete development cycle:");
+        Console.WriteLine("   1. 🏗️ Architect designs the solution");
+        Console.WriteLine("   2. 💻 Developer implements the code");
+        Console.WriteLine("   3. 🔍 Reviewer reviews the result");
         Console.WriteLine();
         Console.Write("Inserisci un requisito da implementare: ");
 
@@ -276,7 +276,7 @@ public static class Program
 
         var results = await orchestrator.RunFullDevelopmentCycleAsync(requirement);
 
-        // Mostra i risultati con formattazione
+        // Show the results with formatting
         var phases = new[] { "DESIGN", "IMPLEMENTAZIONE", "CODE REVIEW" };
 
         for (int i = 0; i < results.Count; i++)
@@ -323,13 +323,13 @@ public static class Program
         var member = orchestrator.GetMember(role);
         if (member == null)
         {
-            Console.WriteLine("Membro non trovato!");
+            Console.WriteLine("Member not found!");
             return;
         }
 
         Console.WriteLine();
-        Console.WriteLine($"Stai chattando con {member}");
-        Console.WriteLine("Scrivi 'exit' per uscire.");
+        Console.WriteLine($"You are chatting with {member}");
+        Console.WriteLine("Write 'exit' to quit.");
         Console.WriteLine();
 
         while (true)

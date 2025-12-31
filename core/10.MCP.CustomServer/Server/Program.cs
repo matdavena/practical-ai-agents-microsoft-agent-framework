@@ -3,16 +3,16 @@
 // FILE: Program.cs (Server)
 // ============================================================================
 //
-// OBIETTIVO:
-// Creare un MCP Server custom in C# che espone tool per calcoli e stringhe.
+// OBJECTIVE:
+// Create a custom MCP Server in C# that exposes tools for calculations and strings.
 //
-// ARCHITETTURA:
+// ARCHITECTURE:
 //
 //    ┌─────────────────────────────────────────────────────────────────────┐
-//    │                    MCP SERVER (questo progetto)                     │
+//    │                    MCP SERVER (this project)                        │
 //    │                                                                     │
 //    │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │
-//    │   │ Calculator  │  │   String    │  │   (Altri)   │                │
+//    │   │ Calculator  │  │   String    │  │   (Others)  │                │
 //    │   │   Tools     │  │   Tools     │  │   Tools     │                │
 //    │   └─────────────┘  └─────────────┘  └─────────────┘                │
 //    │                          │                                         │
@@ -27,13 +27,13 @@
 //                               ▼
 //                    ┌─────────────────────┐
 //                    │   MCP Client        │
-//                    │   (Agente AI)       │
+//                    │   (AI Agent)        │
 //                    └─────────────────────┘
 //
 // ENDPOINT:
-//   - http://localhost:5100/mcp - Endpoint MCP per i client
+//   - http://localhost:5100/mcp - MCP endpoint for clients
 //
-// ESEGUI CON: dotnet run --project core/10.MCP.CustomServer/Server
+// RUN WITH: dotnet run --project core/10.MCP.CustomServer/Server
 // ============================================================================
 
 using Server.Tools;
@@ -41,40 +41,40 @@ using Server.Tools;
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
-// CONFIGURAZIONE MCP SERVER
+// MCP SERVER CONFIGURATION
 // ============================================================================
 //
-// AddMcpServer() registra i servizi MCP nel container DI
-// WithHttpTransport() abilita il trasporto HTTP (Server-Sent Events)
-// WithTools<T>() registra le classi che contengono tool
+// AddMcpServer() registers MCP services in the DI container
+// WithHttpTransport() enables HTTP transport (Server-Sent Events)
+// WithTools<T>() registers classes that contain tools
 //
-// Ogni classe con [McpServerToolType] espone i suoi metodi [McpServerTool]
-// come tool accessibili via protocollo MCP.
+// Each class with [McpServerToolType] exposes its [McpServerTool] methods
+// as tools accessible via MCP protocol.
 
 builder.Services.AddMcpServer()
     .WithHttpTransport()
-    .WithTools<CalculatorTools>()    // Tool matematici
-    .WithTools<StringTools>();       // Tool per stringhe
+    .WithTools<CalculatorTools>()    // Mathematical tools
+    .WithTools<StringTools>();       // String tools
 
-// Configura la porta
+// Configure the port
 builder.WebHost.UseUrls("http://localhost:5100");
 
 var app = builder.Build();
 
 // ============================================================================
-// ENDPOINT MCP
+// MCP ENDPOINT
 // ============================================================================
-// MapMcp() espone l'endpoint /mcp che i client useranno per connettersi.
-// Il protocollo MCP su HTTP usa Server-Sent Events (SSE) per streaming.
+// MapMcp() exposes the /mcp endpoint that clients will use to connect.
+// The MCP protocol over HTTP uses Server-Sent Events (SSE) for streaming.
 
 app.MapMcp("/mcp");
 
-// Endpoint di health check
+// Health check endpoint
 app.MapGet("/", () => Results.Ok(new
 {
     name = "MCP Custom Server",
     version = "1.0.0",
-    description = "Server MCP con tool per calcoli e manipolazione stringhe",
+    description = "MCP server with tools for calculations and string manipulation",
     mcpEndpoint = "/mcp",
     tools = new[]
     {
@@ -90,14 +90,14 @@ Console.WriteLine();
 Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
 Console.WriteLine("║           MCP CUSTOM SERVER - Learning Agent Framework       ║");
 Console.WriteLine("╠══════════════════════════════════════════════════════════════╣");
-Console.WriteLine("║  Server MCP in ascolto su: http://localhost:5100             ║");
-Console.WriteLine("║  Endpoint MCP:             http://localhost:5100/mcp         ║");
+Console.WriteLine("║  MCP Server listening on:  http://localhost:5100             ║");
+Console.WriteLine("║  MCP Endpoint:             http://localhost:5100/mcp         ║");
 Console.WriteLine("║                                                              ║");
-Console.WriteLine("║  Tool disponibili:                                           ║");
+Console.WriteLine("║  Available tools:                                            ║");
 Console.WriteLine("║  - Calculator: add, subtract, multiply, divide, power, etc.  ║");
 Console.WriteLine("║  - String: reverse, uppercase, count_chars, slugify, etc.    ║");
 Console.WriteLine("║                                                              ║");
-Console.WriteLine("║  Premi Ctrl+C per terminare                                  ║");
+Console.WriteLine("║  Press Ctrl+C to terminate                                   ║");
 Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 

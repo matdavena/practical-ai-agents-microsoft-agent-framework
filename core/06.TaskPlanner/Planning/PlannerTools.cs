@@ -2,36 +2,36 @@
 // 06. TASK PLANNER
 // FILE: PlannerTools.cs
 // ============================================================================
-// Questo file definisce i tools che l'agente usa per creare ed eseguire piani.
+// This file defines the tools the agent uses to create and execute plans.
 //
-// PATTERN PLAN-EXECUTE:
+// PLAN-EXECUTE PATTERN:
 //
-// 1. FASE PLANNING:
-//    L'agente analizza l'obiettivo e crea un piano usando create_plan
+// 1. PLANNING PHASE:
+//    The agent analyzes the objective and creates a plan using create_plan
 //    ┌────────────────┐
-//    │ "Crea progetto │     ┌──────────────┐
-//    │  con test"     │ ──► │ create_plan  │ ──► Piano con N step
+//    │ "Create project│     ┌──────────────┐
+//    │  with tests"   │ ──► │ create_plan  │ ──► Plan with N steps
 //    └────────────────┘     └──────────────┘
 //
-// 2. FASE EXECUTE:
-//    L'agente esegue ogni step usando execute_step
+// 2. EXECUTE PHASE:
+//    The agent executes each step using execute_step
 //    ┌────────────────┐     ┌──────────────┐
-//    │ Step 1         │ ──► │ execute_step │ ──► Risultato
+//    │ Step 1         │ ──► │ execute_step │ ──► Result
 //    └────────────────┘     └──────────────┘
 //          │
 //          ▼
 //    ┌────────────────┐     ┌──────────────┐
-//    │ Step 2         │ ──► │ execute_step │ ──► Risultato
+//    │ Step 2         │ ──► │ execute_step │ ──► Result
 //    └────────────────┘     └──────────────┘
 //          │
 //          ▼
 //         ...
 //
-// VANTAGGI:
-// - L'LLM decide COSA fare (planning)
-// - I tools eseguono le azioni (execution)
-// - Tracciabilità completa degli step
-// - Possibilità di retry su errori
+// ADVANTAGES:
+// - The LLM decides WHAT to do (planning)
+// - The tools execute the actions (execution)
+// - Complete traceability of steps
+// - Ability to retry on errors
 // ============================================================================
 
 using System.ComponentModel;
@@ -40,33 +40,33 @@ using Microsoft.Extensions.AI;
 namespace TaskPlanner.Planning;
 
 /// <summary>
-/// Tools per la pianificazione e l'esecuzione di task.
+/// Tools for task planning and execution.
 ///
-/// Questi tools vengono esposti all'agente tramite AIFunctionFactory.
-/// L'agente li chiama autonomamente per:
-/// 1. Creare un piano di esecuzione
-/// 2. Eseguire singoli step del piano
-/// 3. Verificare lo stato del piano
+/// These tools are exposed to the agent via AIFunctionFactory.
+/// The agent calls them autonomously to:
+/// 1. Create an execution plan
+/// 2. Execute individual steps of the plan
+/// 3. Verify the plan status
 /// </summary>
 public class PlannerTools
 {
     // ========================================================================
-    // STATO CONDIVISO
+    // SHARED STATE
     // ========================================================================
 
     /// <summary>
-    /// Piano corrente in esecuzione.
-    /// Condiviso tra tutti i tools per mantenere lo stato.
+    /// Current plan being executed.
+    /// Shared among all tools to maintain state.
     /// </summary>
     private TaskPlan? _currentPlan;
 
     /// <summary>
-    /// Callback per notificare eventi durante l'esecuzione.
+    /// Callback to notify events during execution.
     /// </summary>
     public event Action<string>? OnLogMessage;
 
     /// <summary>
-    /// Piano corrente (sola lettura).
+    /// Current plan (read-only).
     /// </summary>
     public TaskPlan? CurrentPlan => _currentPlan;
 
@@ -75,19 +75,19 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Crea un piano di esecuzione per raggiungere un obiettivo.
+    /// Creates an execution plan to achieve an objective.
     ///
-    /// L'agente deve chiamare questo tool per prima cosa, passando:
-    /// - L'obiettivo da raggiungere
-    /// - La descrizione del piano
-    /// - La lista degli step da eseguire
+    /// The agent must call this tool first, passing:
+    /// - The objective to achieve
+    /// - The plan description
+    /// - The list of steps to execute
     ///
-    /// Ogni step deve essere atomico e verificabile.
+    /// Each step must be atomic and verifiable.
     /// </summary>
-    /// <param name="goal">Obiettivo da raggiungere</param>
-    /// <param name="planDescription">Descrizione generale del piano</param>
-    /// <param name="steps">Lista degli step (separati da |)</param>
-    /// <returns>Conferma della creazione del piano</returns>
+    /// <param name="goal">Objective to achieve</param>
+    /// <param name="planDescription">General description of the plan</param>
+    /// <param name="steps">List of steps (separated by |)</param>
+    /// <returns>Confirmation of plan creation</returns>
     [Description("""
         Creates an execution plan to achieve a goal.
         Call this tool FIRST before executing any steps.
@@ -106,14 +106,14 @@ public class PlannerTools
     {
         Log($"📋 Creazione piano per: {goal}");
 
-        // Crea il piano
+        // Create the plan
         _currentPlan = new TaskPlan
         {
             Goal = goal,
             PlanDescription = planDescription
         };
 
-        // Parsa e aggiungi gli step
+        // Parse and add the steps
         var stepDescriptions = steps
             .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -124,7 +124,7 @@ public class PlannerTools
 
         Log($"   → {_currentPlan.TotalSteps} step creati");
 
-        // Mostra gli step
+        // Show the steps
         foreach (var step in _currentPlan.Steps)
         {
             Log($"   {step.StatusEmoji} Step {step.Id}: {step.Description}");
@@ -139,18 +139,18 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Esegue il prossimo step in attesa del piano.
+    /// Executes the next pending step of the plan.
     ///
-    /// L'agente deve chiamare questo tool ripetutamente per eseguire
-    /// tutti gli step del piano, uno alla volta.
+    /// The agent must call this tool repeatedly to execute
+    /// all steps of the plan, one at a time.
     ///
-    /// Per ogni step, l'agente deve:
-    /// 1. Chiamare execute_next_step con il risultato del lavoro svolto
-    /// 2. Verificare se ci sono altri step (guardando hasMoreSteps)
-    /// 3. Continuare fino al completamento
+    /// For each step, the agent must:
+    /// 1. Call execute_next_step with the result of the work done
+    /// 2. Check if there are more steps (looking at hasMoreSteps)
+    /// 3. Continue until completion
     /// </summary>
-    /// <param name="stepResult">Descrizione del lavoro svolto per questo step</param>
-    /// <returns>Stato dell'esecuzione e informazioni sul prossimo step</returns>
+    /// <param name="stepResult">Description of the work done for this step</param>
+    /// <returns>Execution status and information about the next step</returns>
     [Description("""
         Executes the next pending step in the plan.
 
@@ -179,7 +179,7 @@ public class PlannerTools
             return "All steps have been executed. Plan is complete.";
         }
 
-        // Se lo step è pending, avvialo
+        // If the step is pending, start it
         if (currentStep.Status == TaskStepStatus.Pending)
         {
             if (_currentPlan.Status == TaskPlanStatus.Planned)
@@ -190,11 +190,11 @@ public class PlannerTools
             Log($"   ► Avviato Step {currentStep.Id}: {currentStep.Description}");
         }
 
-        // Completa lo step corrente
+        // Complete the current step
         currentStep.Complete(stepResult);
         Log($"   ✓ Completato Step {currentStep.Id} ({currentStep.Duration?.TotalSeconds:F1}s)");
 
-        // Verifica se ci sono altri step
+        // Check if there are more steps
         var nextStep = _currentPlan.NextStep;
         var hasMoreSteps = nextStep != null;
 
@@ -208,7 +208,7 @@ public class PlannerTools
                    $"Total duration: {_currentPlan.Duration?.TotalSeconds:F1}s";
         }
 
-        // Avvia il prossimo step
+        // Start the next step
         nextStep!.Start();
         Log($"   ► Prossimo Step {nextStep.Id}: {nextStep.Description}");
 
@@ -223,12 +223,12 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Ottiene lo stato corrente del piano.
+    /// Gets the current status of the plan.
     ///
-    /// Utile per verificare il progresso o per riprendere
-    /// l'esecuzione dopo un'interruzione.
+    /// Useful for checking progress or resuming
+    /// execution after an interruption.
     /// </summary>
-    /// <returns>Stato dettagliato del piano</returns>
+    /// <returns>Detailed plan status</returns>
     [Description("""
         Gets the current status of the execution plan.
 
@@ -267,13 +267,13 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Segna lo step corrente come fallito.
+    /// Marks the current step as failed.
     ///
-    /// Usare quando lo step non può essere completato.
-    /// L'agente deve decidere se continuare o abortire il piano.
+    /// Use when the step cannot be completed.
+    /// The agent must decide whether to continue or abort the plan.
     /// </summary>
-    /// <param name="errorMessage">Messaggio di errore</param>
-    /// <returns>Stato dopo il fallimento</returns>
+    /// <param name="errorMessage">Error message</param>
+    /// <returns>Status after failure</returns>
     [Description("""
         Marks the current step as failed.
 
@@ -320,12 +320,12 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Annulla completamente il piano.
+    /// Completely aborts the plan.
     ///
-    /// Tutti gli step non completati vengono marcati come skipped.
+    /// All uncompleted steps are marked as skipped.
     /// </summary>
-    /// <param name="reason">Motivo dell'annullamento</param>
-    /// <returns>Conferma dell'annullamento</returns>
+    /// <param name="reason">Reason for cancellation</param>
+    /// <returns>Cancellation confirmation</returns>
     [Description("""
         Aborts the entire plan.
 
@@ -351,7 +351,7 @@ public class PlannerTools
     // ========================================================================
 
     /// <summary>
-    /// Log di un messaggio.
+    /// Logs a message.
     /// </summary>
     private void Log(string message)
     {
@@ -359,13 +359,13 @@ public class PlannerTools
     }
 
     /// <summary>
-    /// Ottiene la lista dei tools come AIFunction.
+    /// Gets the list of tools as AIFunction.
     /// </summary>
     public IEnumerable<AIFunction> GetTools()
     {
-        // Usa AIFunctionFactory per creare gli AIFunction dai metodi
-        // Sintassi: AIFunctionFactory.Create(delegate, name, description)
-        // Per metodi di istanza usiamo this.MethodName come delegate
+        // Use AIFunctionFactory to create AIFunctions from methods
+        // Syntax: AIFunctionFactory.Create(delegate, name, description)
+        // For instance methods we use this.MethodName as delegate
         yield return AIFunctionFactory.Create(CreatePlan, "create_plan");
         yield return AIFunctionFactory.Create(ExecuteNextStep, "execute_next_step");
         yield return AIFunctionFactory.Create(GetPlanStatus, "get_plan_status");

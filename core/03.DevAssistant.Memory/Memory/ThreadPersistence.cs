@@ -2,22 +2,22 @@
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║                       THREAD PERSISTENCE                                     ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  Helper per salvare e caricare conversazioni (AgentThread) su disco.         ║
+ * ║  Helper for saving and loading conversations (AgentThread) to disk.          ║
  * ║                                                                              ║
- * ║  MEMORIA A BREVE TERMINE:                                                    ║
- * ║  - L'AgentThread contiene TUTTI i messaggi della conversazione               ║
- * ║  - Di default vive solo in memoria (perso al riavvio)                        ║
- * ║  - Con la serializzazione, possiamo salvarlo e ripristinarlo                 ║
+ * ║  SHORT-TERM MEMORY:                                                          ║
+ * ║  - The AgentThread contains ALL messages from the conversation               ║
+ * ║  - By default it lives only in memory (lost on restart)                      ║
+ * ║  - With serialization, we can save and restore it                            ║
  * ║                                                                              ║
- * ║  COME FUNZIONA:                                                              ║
- * ║  1. thread.Serialize() → JsonElement con lo stato del thread                 ║
- * ║  2. JsonSerializer.Serialize(jsonElement) → stringa JSON per il file         ║
- * ║  3. JsonElement.Parse(jsonString) → ricostruisce il JsonElement              ║
- * ║  4. agent.DeserializeThread(jsonElement) → ricrea l'AgentThread              ║
+ * ║  HOW IT WORKS:                                                               ║
+ * ║  1. thread.Serialize() → JsonElement with the thread state                   ║
+ * ║  2. JsonSerializer.Serialize(jsonElement) → JSON string for the file         ║
+ * ║  3. JsonElement.Parse(jsonString) → reconstructs the JsonElement             ║
+ * ║  4. agent.DeserializeThread(jsonElement) → recreates the AgentThread         ║
  * ║                                                                              ║
- * ║  NOTA IMPORTANTE:                                                            ║
- * ║  La deserializzazione richiede l'AGENTE perché il thread può contenere       ║
- * ║  riferimenti a AIContextProvider che devono essere ricreati.                 ║
+ * ║  IMPORTANT NOTE:                                                             ║
+ * ║  Deserialization requires the AGENT because the thread may contain           ║
+ * ║  references to AIContextProvider that need to be recreated.                  ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -27,22 +27,22 @@ using System.Text.Json;
 namespace DevAssistant.Memory.Memory;
 
 /// <summary>
-/// Helper statico per la persistenza delle conversazioni.
+/// Static helper for conversation persistence.
 ///
-/// USA IL PATTERN BUILT-IN DEL FRAMEWORK:
-/// - thread.Serialize() → converte il thread in JsonElement
-/// - agent.DeserializeThread() → ricrea il thread dal JsonElement
+/// USES THE FRAMEWORK'S BUILT-IN PATTERN:
+/// - thread.Serialize() → converts the thread to JsonElement
+/// - agent.DeserializeThread() → recreates the thread from JsonElement
 ///
-/// NOTA: La serializzazione include:
-/// - Tutti i messaggi (user, assistant, tool calls)
-/// - Lo stato dell'AIContextProvider (se presente)
-/// - I metadata del thread
+/// NOTE: Serialization includes:
+/// - All messages (user, assistant, tool calls)
+/// - The AIContextProvider state (if present)
+/// - Thread metadata
 /// </summary>
 public static class ThreadPersistence
 {
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * COSTANTI
+     * CONSTANTS
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
@@ -51,21 +51,21 @@ public static class ThreadPersistence
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * SALVATAGGIO THREAD
+     * THREAD SAVING
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
     /// <summary>
-    /// Salva un thread su disco.
+    /// Saves a thread to disk.
     ///
-    /// IL METODO Serialize() DEL FRAMEWORK:
-    /// - Converte l'intero thread in un JsonElement
-    /// - Include tutti i messaggi e metadata
-    /// - Include lo stato dell'AIContextProvider
+    /// THE FRAMEWORK'S Serialize() METHOD:
+    /// - Converts the entire thread into a JsonElement
+    /// - Includes all messages and metadata
+    /// - Includes the AIContextProvider state
     /// </summary>
-    /// <param name="thread">Il thread da salvare</param>
-    /// <param name="conversationId">ID univoco della conversazione</param>
-    /// <param name="basePath">Directory base (default: directory corrente)</param>
+    /// <param name="thread">The thread to save</param>
+    /// <param name="conversationId">Unique conversation ID</param>
+    /// <param name="basePath">Base directory (default: current directory)</param>
     public static async Task SaveThreadAsync(
         AgentThread thread,
         string conversationId,
@@ -73,7 +73,7 @@ public static class ThreadPersistence
     {
         var filePath = GetThreadFilePath(conversationId, basePath);
 
-        // Assicuriamoci che la directory esista
+        // Ensure the directory exists
         var directory = Path.GetDirectoryName(filePath);
         if (directory != null && !Directory.Exists(directory))
         {
@@ -81,47 +81,47 @@ public static class ThreadPersistence
         }
 
         /*
-         * STEP 1: Serializza il thread in JsonElement
+         * STEP 1: Serialize the thread to JsonElement
          *
-         * thread.Serialize() restituisce un JsonElement che contiene:
-         * - I messaggi della conversazione (se usa InMemoryChatMessageStore)
-         * - Lo stato dell'AIContextProvider (se presente e implementa Serialize)
-         * - L'ID della conversazione
+         * thread.Serialize() returns a JsonElement containing:
+         * - The conversation messages (if using InMemoryChatMessageStore)
+         * - The AIContextProvider state (if present and implements Serialize)
+         * - The conversation ID
          */
         JsonElement serializedThread = thread.Serialize();
 
         /*
-         * STEP 2: Converti JsonElement in stringa JSON
+         * STEP 2: Convert JsonElement to JSON string
          *
-         * Usiamo JsonSerializer.Serialize per ottenere una stringa
-         * che possiamo salvare su file.
+         * We use JsonSerializer.Serialize to get a string
+         * that we can save to file.
          */
         var jsonString = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions
         {
             WriteIndented = true
         });
 
-        // STEP 3: Salviamo su file
+        // STEP 3: Save to file
         await File.WriteAllTextAsync(filePath, jsonString);
     }
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * CARICAMENTO THREAD
+     * THREAD LOADING
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
     /// <summary>
-    /// Carica un thread salvato in precedenza.
+    /// Loads a previously saved thread.
     ///
-    /// NOTA: Richiede l'agente per la deserializzazione perché:
-    /// - L'agente conosce come ricreare l'AIContextProvider
-    /// - L'agente configura correttamente il thread
+    /// NOTE: Requires the agent for deserialization because:
+    /// - The agent knows how to recreate the AIContextProvider
+    /// - The agent configures the thread correctly
     /// </summary>
-    /// <param name="agent">L'agente che userà il thread</param>
-    /// <param name="conversationId">ID della conversazione da caricare</param>
-    /// <param name="basePath">Directory base</param>
-    /// <returns>Il thread caricato, o null se non esiste</returns>
+    /// <param name="agent">The agent that will use the thread</param>
+    /// <param name="conversationId">ID of the conversation to load</param>
+    /// <param name="basePath">Base directory</param>
+    /// <returns>The loaded thread, or null if it doesn't exist</returns>
     public static async Task<AgentThread?> LoadThreadAsync(
         AIAgent agent,
         string conversationId,
@@ -137,43 +137,43 @@ public static class ThreadPersistence
         try
         {
             /*
-             * STEP 1: Leggi il file JSON
+             * STEP 1: Read the JSON file
              */
             var jsonString = await File.ReadAllTextAsync(filePath);
 
             /*
-             * STEP 2: Parse in JsonElement
+             * STEP 2: Parse into JsonElement
              *
-             * JsonElement.Parse converte la stringa JSON in un JsonElement
-             * che il framework può usare per ricostruire il thread.
+             * JsonElement.Parse converts the JSON string into a JsonElement
+             * that the framework can use to reconstruct the thread.
              */
             JsonElement serializedThread = JsonElement.Parse(jsonString);
 
             /*
-             * STEP 3: Deserializza usando l'agente
+             * STEP 3: Deserialize using the agent
              *
-             * agent.DeserializeThread() ricrea il thread completo:
-             * - Ricostruisce la cronologia dei messaggi
-             * - Ricrea l'AIContextProvider (se configurato nell'agente)
-             * - Ripristina lo stato del provider serializzato
+             * agent.DeserializeThread() recreates the complete thread:
+             * - Reconstructs the message history
+             * - Recreates the AIContextProvider (if configured in the agent)
+             * - Restores the serialized provider state
              */
             return agent.DeserializeThread(serializedThread);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ThreadPersistence] Errore caricamento: {ex.Message}");
+            Console.WriteLine($"[ThreadPersistence] Loading error: {ex.Message}");
             return null;
         }
     }
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * GESTIONE CONVERSAZIONI
+     * CONVERSATION MANAGEMENT
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
     /// <summary>
-    /// Verifica se esiste un thread salvato.
+    /// Checks if a saved thread exists.
     /// </summary>
     public static bool ThreadExists(string conversationId, string? basePath = null)
     {
@@ -182,7 +182,7 @@ public static class ThreadPersistence
     }
 
     /// <summary>
-    /// Elimina un thread salvato.
+    /// Deletes a saved thread.
     /// </summary>
     public static void DeleteThread(string conversationId, string? basePath = null)
     {
@@ -194,9 +194,9 @@ public static class ThreadPersistence
     }
 
     /// <summary>
-    /// Elenca tutte le conversazioni salvate.
+    /// Lists all saved conversations.
     /// </summary>
-    /// <returns>Lista di ID conversazione</returns>
+    /// <returns>List of conversation IDs</returns>
     public static IEnumerable<string> ListSavedConversations(string? basePath = null)
     {
         var folder = GetThreadsFolder(basePath);
@@ -212,7 +212,7 @@ public static class ThreadPersistence
     }
 
     /// <summary>
-    /// Ottiene informazioni base su una conversazione salvata.
+    /// Gets basic information about a saved conversation.
     /// </summary>
     public static ConversationInfo? GetConversationInfo(string conversationId, string? basePath = null)
     {
@@ -247,7 +247,7 @@ public static class ThreadPersistence
 
     private static string GetThreadFilePath(string conversationId, string? basePath)
     {
-        // Sanifichiamo l'ID per evitare path injection
+        // Sanitize the ID to avoid path injection
         var safeId = SanitizeFileName(conversationId);
         return Path.Combine(GetThreadsFolder(basePath), $"{safeId}{ThreadFileExtension}");
     }
@@ -260,7 +260,7 @@ public static class ThreadPersistence
 }
 
 /// <summary>
-/// Informazioni su una conversazione salvata.
+/// Information about a saved conversation.
 /// </summary>
 public record ConversationInfo
 {

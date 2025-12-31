@@ -3,37 +3,37 @@
 // LEARNING PATH: MICROSOFT AGENT FRAMEWORK
 // ============================================================================
 //
-// OBIETTIVO DI QUESTO PROGETTO:
-// Imparare il pattern Plan-Execute per agenti goal-oriented.
-// L'agente decompone obiettivi complessi in step atomici ed eseguibili.
+// OBJECTIVE OF THIS PROJECT:
+// Learn the Plan-Execute pattern for goal-oriented agents.
+// The agent decomposes complex objectives into atomic and executable steps.
 //
 // SCENARIO:
-// Un TaskPlanner che riceve obiettivi dall'utente, li decompone
-// in un piano strutturato, e li esegue step by step con feedback.
+// A TaskPlanner that receives objectives from the user, breaks them down
+// into a structured plan, and executes them step by step with feedback.
 //
-// CONCETTI CHIAVE:
+// KEY CONCEPTS:
 //
-// 1. PATTERN PLAN-EXECUTE:
+// 1. PLAN-EXECUTE PATTERN:
 //    ┌─────────────────────────────────────────────────────────────────┐
-//    │  FASE 1: PLANNING                                               │
-//    │  L'agente analizza l'obiettivo e crea un piano strutturato      │
-//    │  con step atomici e verificabili.                               │
+//    │  PHASE 1: PLANNING                                              │
+//    │  The agent analyzes the objective and creates a structured plan │
+//    │  with atomic and verifiable steps.                              │
 //    └─────────────────────────────────────────────────────────────────┘
 //                              │
 //                              ▼
 //    ┌─────────────────────────────────────────────────────────────────┐
-//    │  FASE 2: EXECUTION                                              │
-//    │  L'agente esegue ogni step, verifica il risultato,              │
-//    │  e passa al successivo.                                         │
+//    │  PHASE 2: EXECUTION                                             │
+//    │  The agent executes each step, verifies the result,             │
+//    │  and moves to the next one.                                     │
 //    └─────────────────────────────────────────────────────────────────┘
 //
-// 2. VANTAGGI:
-//    - Trasparenza: l'utente vede esattamente cosa farà l'agente
-//    - Controllo: possibilità di approvare il piano prima dell'esecuzione
-//    - Retry: fallimenti isolati permettono di ritentare singoli step
-//    - Monitoraggio: tracking del progresso in tempo reale
+// 2. ADVANTAGES:
+//    - Transparency: the user sees exactly what the agent will do
+//    - Control: ability to approve the plan before execution
+//    - Retry: isolated failures allow retrying individual steps
+//    - Monitoring: real-time progress tracking
 //
-// ESEGUI CON: dotnet run --project core/06.TaskPlanner
+// RUN WITH: dotnet run --project core/06.TaskPlanner
 // ============================================================================
 
 using System.Text;
@@ -49,11 +49,11 @@ namespace TaskPlanner;
 public static class Program
 {
     // ========================================================================
-    // CONFIGURAZIONE
+    // CONFIGURATION
     // ========================================================================
 
     /// <summary>
-    /// Modello da usare. GPT-4o-mini supporta bene il tool calling.
+    /// Model to use. GPT-4o-mini supports tool calling well.
     /// </summary>
     private const string ChatModel = "gpt-4o-mini";
 
@@ -63,7 +63,7 @@ public static class Program
 
     public static async Task Main()
     {
-        // Importante per visualizzare correttamente emoji e caratteri speciali
+        // Important for correctly displaying emojis and special characters
         Console.OutputEncoding = Encoding.UTF8;
 
         ConsoleHelper.WriteTitle("06. TaskPlanner");
@@ -85,13 +85,13 @@ public static class Program
         // ====================================================================
         ConsoleHelper.WriteSeparator("Step 2: Setup Planner Tools");
 
-        // Creiamo i tools per il planning
+        // Create the tools for planning
         var plannerTools = new PlannerTools();
 
-        // Registriamo il callback per i log
+        // Register the callback for logs
         plannerTools.OnLogMessage += message =>
         {
-            // Mostra i log con colore grigio per distinguerli
+            // Show logs with gray color to distinguish them
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine(message);
             Console.ResetColor();
@@ -105,11 +105,11 @@ public static class Program
         Console.WriteLine("   - abort_plan: Annulla il piano");
 
         // ====================================================================
-        // STEP 3: CREA L'AGENTE PLANNER
+        // STEP 3: CREATE THE PLANNER AGENT
         // ====================================================================
         ConsoleHelper.WriteSeparator("Step 3: Creazione TaskPlanner Agent");
 
-        // System prompt per il TaskPlanner
+        // System prompt for the TaskPlanner
         const string systemPrompt = """
             Sei un TaskPlanner, un agente specializzato nel pianificare ed eseguire task complessi.
 
@@ -140,7 +140,7 @@ public static class Program
             Rispondi sempre in italiano.
             """;
 
-        // Creiamo l'agente con i tools
+        // Create the agent with the tools
         var chatClient = openAiClient.GetChatClient(ChatModel);
         var tools = plannerTools.GetTools().ToList();
 
@@ -149,7 +149,7 @@ public static class Program
             Name = "TaskPlanner",
             ChatOptions = new ChatOptions
             {
-                Temperature = 0.3f, // Bassa temperatura per consistenza
+                Temperature = 0.3f, // Low temperature for consistency
                 Tools = tools.Cast<AITool>().ToList()
             }
         });
@@ -171,13 +171,13 @@ public static class Program
         Console.WriteLine("Scrivi 'exit' per uscire, 'status' per vedere lo stato del piano.");
         Console.WriteLine();
 
-        // Crea un thread di conversazione
+        // Create a conversation thread
         AgentThread thread = agent.GetNewThread();
 
-        // Contatore messaggi
+        // Message counter
         int messageCount = 0;
 
-        // Loop di conversazione
+        // Conversation loop
         while (true)
         {
             Console.Write("Tu: ");
@@ -192,7 +192,7 @@ public static class Program
                 break;
             }
 
-            // Comando speciale per vedere lo stato
+            // Special command to view status
             if (userInput.Equals("status", StringComparison.OrdinalIgnoreCase))
             {
                 if (plannerTools.CurrentPlan != null)
@@ -212,12 +212,12 @@ public static class Program
 
             try
             {
-                // Per il primo messaggio, includiamo le istruzioni come contesto
+                // For the first message, include the instructions as context
                 var promptWithContext = messageCount == 0
                     ? $"[Contesto sistema: {systemPrompt}]\n\n{userInput}"
                     : userInput;
 
-                // Invoca l'agente
+                // Invoke the agent
                 ConsoleHelper.WriteAgentHeader();
 
                 await foreach (var update in agent.RunStreamingAsync(promptWithContext, thread))
@@ -229,7 +229,7 @@ public static class Program
 
                 messageCount++;
 
-                // Mostra lo stato del piano se esiste
+                // Show the plan status if it exists
                 if (plannerTools.CurrentPlan != null &&
                     plannerTools.CurrentPlan.Status == TaskPlanStatus.Completed)
                 {
@@ -249,7 +249,7 @@ public static class Program
         }
 
         // ====================================================================
-        // RIEPILOGO
+        // SUMMARY
         // ====================================================================
         ConsoleHelper.WriteSeparator("Riepilogo");
 

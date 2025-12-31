@@ -1,35 +1,35 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // ============================================================================
 //
-// Questo progetto dimostra l'utilizzo di vector store reali per RAG,
-// in alternativa al InMemoryVectorStore visto nel progetto 05.
+// This project demonstrates the use of real vector stores for RAG,
+// as an alternative to the InMemoryVectorStore seen in project 05.
 //
-// VECTOR STORE DISPONIBILI:
+// AVAILABLE VECTOR STORES:
 //
-// 1. QDRANT (porta 6333/6334)
-//    - Database vettoriale nativo, open-source
-//    - Ottimizzato per ricerca semantica ad alte prestazioni
-//    - Dashboard web integrato: http://localhost:6333/dashboard
-//    - Supporta miliardi di vettori con filtering avanzato
+// 1. QDRANT (port 6333/6334)
+//    - Native vector database, open-source
+//    - Optimized for high-performance semantic search
+//    - Integrated web dashboard: http://localhost:6333/dashboard
+//    - Supports billions of vectors with advanced filtering
 //
-// 2. POSTGRESQL + PGVECTOR (porta 5433)
-//    - PostgreSQL con estensione pgvector (open source)
-//    - Soluzione più popolare per vector search in RDBMS
-//    - Supporta indici HNSW e IVFFlat
-//    - Porta 5433 per evitare conflitti con installazioni locali
+// 2. POSTGRESQL + PGVECTOR (port 5433)
+//    - PostgreSQL with pgvector extension (open source)
+//    - Most popular solution for vector search in RDBMS
+//    - Supports HNSW and IVFFlat indexes
+//    - Port 5433 to avoid conflicts with local installations
 //
-// 3. SQL SERVER (porta 1434) - FUTURO
-//    - Database relazionale con supporto vettoriale (SQL Server 2025)
-//    - NOTA: Richiede SQL Server 2025 (non ancora pubblicamente disponibile)
-//    - Porta 1434 per evitare conflitti con installazioni locali
+// 3. SQL SERVER (port 1434) - FUTURE
+//    - Relational database with vector support (SQL Server 2025)
+//    - NOTE: Requires SQL Server 2025 (not yet publicly available)
+//    - Port 1434 to avoid conflicts with local installations
 //
-// PREREQUISITI:
-// 1. Docker Desktop installato e in esecuzione
-// 2. Avvia i container con: docker compose up -d
-// 3. Attendi qualche secondo che i database siano pronti
+// PREREQUISITES:
+// 1. Docker Desktop installed and running
+// 2. Start containers with: docker compose up -d
+// 3. Wait a few seconds for the databases to be ready
 //
-// VERIFICA CONTAINER:
+// VERIFY CONTAINERS:
 // - docker compose ps
 // - docker compose logs -f
 //
@@ -41,40 +41,40 @@ using Common;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-ConsoleHelper.WriteTitle("11. RAG con Vector Stores Reali");
+ConsoleHelper.WriteTitle("11. RAG with Real Vector Stores");
 
 // ============================================================================
-// VERIFICA PREREQUISITI
+// VERIFY PREREQUISITES
 // ============================================================================
 
-Console.WriteLine("PREREQUISITI:");
-Console.WriteLine("   1. Docker Desktop deve essere in esecuzione");
-Console.WriteLine("   2. I container devono essere avviati:");
+Console.WriteLine("PREREQUISITES:");
+Console.WriteLine("   1. Docker Desktop must be running");
+Console.WriteLine("   2. Containers must be started:");
 Console.WriteLine("      cd core/11.RAG.VectorStores");
 Console.WriteLine("      docker compose up -d");
 Console.WriteLine();
-Console.WriteLine("CONTAINER CONFIGURATI:");
+Console.WriteLine("CONFIGURED CONTAINERS:");
 Console.WriteLine("   - Qdrant:      http://localhost:6333 (dashboard: /dashboard)");
 Console.WriteLine("   - PostgreSQL:  localhost:5433 (postgres/VectorStore123!)");
 Console.WriteLine("   - SQL Server:  localhost,1434 (sa/VectorStore123!) - SQL Server 2025");
 Console.WriteLine();
 
 // ============================================================================
-// MENU PRINCIPALE
+// MAIN MENU
 // ============================================================================
 
 while (true)
 {
-    ConsoleHelper.WriteSeparator("Seleziona Vector Store");
+    ConsoleHelper.WriteSeparator("Select Vector Store");
 
-    Console.WriteLine("1. Qdrant      - Vector database nativo (porta 6333)");
-    Console.WriteLine("2. PostgreSQL  - pgvector, open source (porta 5433)");
-    Console.WriteLine("3. SQL Server  - RICHIEDE SQL Server 2025 (non ancora pubblico)");
-    Console.WriteLine("4. Confronto   - Mostra differenze tra gli approcci");
-    Console.WriteLine("0. Esci");
+    Console.WriteLine("1. Qdrant      - Native vector database (port 6333)");
+    Console.WriteLine("2. PostgreSQL  - pgvector, open source (port 5433)");
+    Console.WriteLine("3. SQL Server  - REQUIRES SQL Server 2025 (not yet public)");
+    Console.WriteLine("4. Comparison  - Show differences between approaches");
+    Console.WriteLine("0. Exit");
     Console.WriteLine();
 
-    Console.Write("Scelta: ");
+    Console.Write("Choice: ");
     var choice = Console.ReadLine();
 
     Console.WriteLine();
@@ -101,7 +101,7 @@ while (true)
             goto exit;
 
         default:
-            Console.WriteLine("Scelta non valida!");
+            Console.WriteLine("Invalid choice!");
             break;
     }
 }
@@ -109,42 +109,42 @@ while (true)
 exit:
 
 // ============================================================================
-// RIEPILOGO FINALE
+// FINAL SUMMARY
 // ============================================================================
 
-ConsoleHelper.WriteSeparator("Riepilogo");
+ConsoleHelper.WriteSeparator("Summary");
 
-Console.WriteLine("In questo progetto hai imparato:");
+Console.WriteLine("In this project you learned:");
 Console.WriteLine();
-Console.WriteLine("1. QDRANT - Vector Database Nativo:");
-Console.WriteLine("   - Ottimizzato per ricerca semantica ad alte prestazioni");
-Console.WriteLine("   - Dashboard web per visualizzare collezioni e vettori");
-Console.WriteLine("   - API semplice: CreateCollection, Upsert, VectorSearch");
-Console.WriteLine("   - Ideale per: grandi volumi, ricerca pura, filtering complesso");
+Console.WriteLine("1. QDRANT - Native Vector Database:");
+Console.WriteLine("   - Optimized for high-performance semantic search");
+Console.WriteLine("   - Web dashboard to visualize collections and vectors");
+Console.WriteLine("   - Simple API: CreateCollection, Upsert, VectorSearch");
+Console.WriteLine("   - Ideal for: large volumes, pure search, complex filtering");
 Console.WriteLine();
-Console.WriteLine("2. POSTGRESQL + PGVECTOR - RDBMS Open Source:");
-Console.WriteLine("   - Estensione pgvector per PostgreSQL (open source)");
-Console.WriteLine("   - Supporta indici HNSW e IVFFlat");
-Console.WriteLine("   - Combina query SQL tradizionali con ricerca vettoriale");
-Console.WriteLine("   - Ideale per: chi usa già PostgreSQL, soluzione open source");
+Console.WriteLine("2. POSTGRESQL + PGVECTOR - Open Source RDBMS:");
+Console.WriteLine("   - pgvector extension for PostgreSQL (open source)");
+Console.WriteLine("   - Supports HNSW and IVFFlat indexes");
+Console.WriteLine("   - Combines traditional SQL queries with vector search");
+Console.WriteLine("   - Ideal for: those already using PostgreSQL, open source solution");
 Console.WriteLine();
-Console.WriteLine("3. SQL SERVER 2025 - Vector Support Integrato (futuro):");
-Console.WriteLine("   - Funzionalità vettoriali integrate nel database relazionale");
-Console.WriteLine("   - Join tra vettori e dati strutturati");
-Console.WriteLine("   - NOTA: Richiede SQL Server 2025 (non ancora disponibile)");
+Console.WriteLine("3. SQL SERVER 2025 - Integrated Vector Support (future):");
+Console.WriteLine("   - Vector features integrated into relational database");
+Console.WriteLine("   - Join between vectors and structured data");
+Console.WriteLine("   - NOTE: Requires SQL Server 2025 (not yet available)");
 Console.WriteLine();
-Console.WriteLine("4. CONCETTI CHIAVE:");
-Console.WriteLine("   - [VectorStoreKey] - Identifica la chiave primaria");
-Console.WriteLine("   - [VectorStoreData] - Campi dati/metadati");
-Console.WriteLine("   - [VectorStoreVector] - Campo embedding con dimensioni");
-Console.WriteLine("   - IVectorStore - Interfaccia comune per tutti i backend");
-Console.WriteLine("   - SearchAsync() - Ricerca per similarità");
+Console.WriteLine("4. KEY CONCEPTS:");
+Console.WriteLine("   - [VectorStoreKey] - Identifies the primary key");
+Console.WriteLine("   - [VectorStoreData] - Data/metadata fields");
+Console.WriteLine("   - [VectorStoreVector] - Embedding field with dimensions");
+Console.WriteLine("   - IVectorStore - Common interface for all backends");
+Console.WriteLine("   - SearchAsync() - Similarity search");
 Console.WriteLine();
 Console.WriteLine("5. DOCKER COMPOSE:");
-Console.WriteLine("   - docker compose up -d    -> Avvia i container");
-Console.WriteLine("   - docker compose ps       -> Verifica stato");
-Console.WriteLine("   - docker compose down     -> Ferma container");
-Console.WriteLine("   - docker compose down -v  -> Rimuove anche i volumi");
+Console.WriteLine("   - docker compose up -d    -> Start containers");
+Console.WriteLine("   - docker compose ps       -> Verify status");
+Console.WriteLine("   - docker compose down     -> Stop containers");
+Console.WriteLine("   - docker compose down -v  -> Also remove volumes");
 Console.WriteLine();
 
 // ============================================================================
@@ -153,48 +153,48 @@ Console.WriteLine();
 
 void ShowComparison()
 {
-    ConsoleHelper.WriteSeparator("Confronto Vector Stores");
+    ConsoleHelper.WriteSeparator("Vector Stores Comparison");
 
     Console.WriteLine("""
         ┌────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┐
-        │ Caratteristica     │ Qdrant               │ PostgreSQL+pgvector  │ SQL Server 2025      │
+        │ Feature            │ Qdrant               │ PostgreSQL+pgvector  │ SQL Server 2025      │
         ├────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤
-        │ Tipo               │ Vector DB nativo     │ RDBMS + estensione   │ RDBMS + vector       │
-        │ Licenza            │ Open source          │ Open source          │ Commerciale          │
-        │ Disponibilita      │ Disponibile ora      │ Disponibile ora      │ Non ancora pubblico  │
-        │ Performance        │ Eccellente           │ Molto buona          │ Buona                │
-        │ Scala              │ Miliardi di vettori  │ Milioni di vettori   │ Milioni di vettori   │
-        │ Indici supportati  │ HNSW, Flat           │ HNSW, IVFFlat        │ Solo Flat            │
-        │ Transazioni        │ Eventual consistency │ ACID completo        │ ACID completo        │
-        │ Join con dati      │ No (solo metadati)   │ Si (SQL nativo)      │ Si (SQL nativo)      │
-        │ Setup              │ Semplice (Docker)    │ Semplice (Docker)    │ Non disponibile      │
+        │ Type               │ Native Vector DB     │ RDBMS + extension    │ RDBMS + vector       │
+        │ License            │ Open source          │ Open source          │ Commercial           │
+        │ Availability       │ Available now        │ Available now        │ Not yet public       │
+        │ Performance        │ Excellent            │ Very good            │ Good                 │
+        │ Scale              │ Billions of vectors  │ Millions of vectors  │ Millions of vectors  │
+        │ Supported indexes  │ HNSW, Flat           │ HNSW, IVFFlat        │ Flat only            │
+        │ Transactions       │ Eventual consistency │ Full ACID            │ Full ACID            │
+        │ Join with data     │ No (metadata only)   │ Yes (native SQL)     │ Yes (native SQL)     │
+        │ Setup              │ Simple (Docker)      │ Simple (Docker)      │ Not available        │
         │ Cloud support      │ Qdrant Cloud         │ AWS/Azure/GCP/Neon   │ Azure SQL            │
         └────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘
 
-        STATO ATTUALE (Dicembre 2024):
-        - Qdrant: Pronto per produzione, ottimo per vector search puro
-        - PostgreSQL + pgvector: Pronto per produzione, ottimo per RDBMS esistenti
-        - SQL Server: Il tipo VECTOR richiede SQL Server 2025 (non ancora disponibile)
+        CURRENT STATUS (December 2024):
+        - Qdrant: Production ready, excellent for pure vector search
+        - PostgreSQL + pgvector: Production ready, excellent for existing RDBMS
+        - SQL Server: VECTOR type requires SQL Server 2025 (not yet available)
 
-        QUANDO USARE QDRANT:
-        - Progetti che richiedono massive scale (miliardi di vettori)
-        - Performance critica nella ricerca semantica
-        - Filtering complesso durante la ricerca
-        - Non hai bisogno di join SQL tradizionali
+        WHEN TO USE QDRANT:
+        - Projects requiring massive scale (billions of vectors)
+        - Critical performance in semantic search
+        - Complex filtering during search
+        - No need for traditional SQL joins
 
-        QUANDO USARE POSTGRESQL + PGVECTOR (consigliato per RDBMS):
-        - Vuoi combinare vector search con query SQL tradizionali
-        - Hai gia PostgreSQL nel tuo stack
-        - Preferisci soluzioni open source
-        - Vuoi indici HNSW per ricerca approssimata veloce
+        WHEN TO USE POSTGRESQL + PGVECTOR (recommended for RDBMS):
+        - Want to combine vector search with traditional SQL queries
+        - Already have PostgreSQL in your stack
+        - Prefer open source solutions
+        - Want HNSW indexes for fast approximate search
 
-        QUANDO USARE SQL SERVER (futuro):
-        - Quando SQL Server 2025 sara disponibile
-        - Stack esistente basato su SQL Server/.NET
-        - Licenza SQL Server gia disponibile
+        WHEN TO USE SQL SERVER (future):
+        - When SQL Server 2025 becomes available
+        - Existing stack based on SQL Server/.NET
+        - SQL Server license already available
         """);
 
     Console.WriteLine();
-    Console.WriteLine("Premi un tasto per continuare...");
+    Console.WriteLine("Press any key to continue...");
     Console.ReadKey();
 }

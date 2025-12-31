@@ -2,19 +2,19 @@
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║                    USER PREFERENCES MEMORY                                   ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  Implementazione custom di AIContextProvider per memorizzare le              ║
- * ║  preferenze dell'utente tra le sessioni.                                     ║
+ * ║  Custom implementation of AIContextProvider to store                         ║
+ * ║  user preferences between sessions.                                          ║
  * ║                                                                              ║
- * ║  COSA FA UN AIContextProvider:                                               ║
- * ║  - Viene chiamato PRIMA di ogni invocazione dell'agente (InvokingAsync)      ║
- * ║  - Viene chiamato DOPO ogni invocazione dell'agente (InvokedAsync)           ║
- * ║  - Può aggiungere "contesto" (istruzioni, messaggi, tools)                   ║
- * ║  - Perfetto per: preferenze utente, stato applicazione, dati esterni         ║
+ * ║  WHAT AN AIContextProvider DOES:                                             ║
+ * ║  - Called BEFORE each agent invocation (InvokingAsync)                       ║
+ * ║  - Called AFTER each agent invocation (InvokedAsync)                         ║
+ * ║  - Can add "context" (instructions, messages, tools)                         ║
+ * ║  - Perfect for: user preferences, application state, external data           ║
  * ║                                                                              ║
- * ║  PATTERN "EXTRACT → STORE → INJECT":                                         ║
- * ║  1. EXTRACT: In InvokedAsync, estrae info rilevanti dalla chat               ║
- * ║  2. STORE: Salva le info in un formato persistente (JSON)                    ║
- * ║  3. INJECT: In InvokingAsync, inietta le info nel contesto                   ║
+ * ║  "EXTRACT → STORE → INJECT" PATTERN:                                         ║
+ * ║  1. EXTRACT: In InvokedAsync, extracts relevant info from chat               ║
+ * ║  2. STORE: Saves info in a persistent format (JSON)                          ║
+ * ║  3. INJECT: In InvokingAsync, injects info into the context                  ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -26,34 +26,34 @@ using System.Text.Json;
 namespace DevAssistant.Memory.Memory;
 
 /// <summary>
-/// Memoria per le preferenze utente.
+/// Memory for user preferences.
 ///
-/// CONCETTO CHIAVE: AIContextProvider
-/// - È una classe astratta del framework che permette di "iniettare" contesto
-/// - Viene chiamato automaticamente durante l'esecuzione dell'agente
-/// - Può modificare il contesto prima che arrivi all'LLM
+/// KEY CONCEPT: AIContextProvider
+/// - It's a framework abstract class that allows "injecting" context
+/// - Called automatically during agent execution
+/// - Can modify the context before it reaches the LLM
 ///
-/// CICLO DI VITA:
-/// 1. InvokingAsync - PRIMA dell'invocazione LLM → aggiungi contesto
-/// 2. InvokedAsync - DOPO l'invocazione LLM → estrai info dalle risposte
+/// LIFECYCLE:
+/// 1. InvokingAsync - BEFORE LLM invocation → add context
+/// 2. InvokedAsync - AFTER LLM invocation → extract info from responses
 /// </summary>
 public class UserPreferencesMemory : AIContextProvider
 {
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * STRUTTURA DATI PER LE PREFERENZE
+     * DATA STRUCTURE FOR PREFERENCES
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
     /// <summary>
-    /// Record per memorizzare le preferenze dell'utente.
-    /// Usiamo una classe per permettere la deserializzazione JSON.
+    /// Record to store user preferences.
+    /// We use a class to enable JSON deserialization.
     /// </summary>
     public class UserPreferences
     {
         public string? Nome { get; set; }
         public string? LinguaPreferita { get; set; }
-        public string? StileComunicazione { get; set; }  // "formale", "informale", "tecnico"
+        public string? StileComunicazione { get; set; }  // "formal", "informal", "technical"
         public List<string> ArgomentiInteresse { get; set; } = [];
         public string? ProgettoCorrente { get; set; }
         public DateTime UltimoAccesso { get; set; } = DateTime.Now;
@@ -61,72 +61,72 @@ public class UserPreferencesMemory : AIContextProvider
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * STATO E CONFIGURAZIONE
+     * STATE AND CONFIGURATION
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
     /// <summary>
-    /// Le preferenze correnti dell'utente.
+    /// Current user preferences.
     /// </summary>
     public UserPreferences Preferences { get; private set; } = new();
 
     /// <summary>
-    /// Path del file dove persistere le preferenze.
+    /// Path of the file where preferences are persisted.
     /// </summary>
     private readonly string _preferencesFilePath;
 
     /// <summary>
-    /// Crea una nuova istanza di UserPreferencesMemory.
+    /// Creates a new instance of UserPreferencesMemory.
     /// </summary>
-    /// <param name="preferencesFilePath">Path dove salvare le preferenze (JSON)</param>
+    /// <param name="preferencesFilePath">Path where to save preferences (JSON)</param>
     public UserPreferencesMemory(string? preferencesFilePath = null)
     {
-        // Default: file nella directory corrente
+        // Default: file in current directory
         _preferencesFilePath = preferencesFilePath
             ?? Path.Combine(Directory.GetCurrentDirectory(), "user_preferences.json");
 
-        // Carichiamo le preferenze esistenti se ci sono
+        // Load existing preferences if they exist
         LoadPreferences();
     }
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * IMPLEMENTAZIONE DI AIContextProvider - InvokingAsync
+     * AIContextProvider IMPLEMENTATION - InvokingAsync
      * ═══════════════════════════════════════════════════════════════════════════
      *
-     * METODO CHIAVE: InvokingAsync
-     * - Viene chiamato AUTOMATICAMENTE PRIMA di ogni invocazione LLM
-     * - Riceve i messaggi della richiesta corrente
-     * - Restituisce un AIContext con:
-     *   - Instructions: istruzioni aggiuntive da aggiungere al system prompt
-     *   - Messages: messaggi da aggiungere alla conversazione
-     *   - Tools: tools aggiuntivi da rendere disponibili
+     * KEY METHOD: InvokingAsync
+     * - Called AUTOMATICALLY BEFORE each LLM invocation
+     * - Receives the messages from the current request
+     * - Returns an AIContext with:
+     *   - Instructions: additional instructions to add to the system prompt
+     *   - Messages: messages to add to the conversation
+     *   - Tools: additional tools to make available
      */
 
     /// <summary>
-    /// Genera il contesto da iniettare nel prompt dell'agente.
+    /// Generates the context to inject into the agent's prompt.
     ///
-    /// QUANDO VIENE CHIAMATO:
-    /// - Prima di ogni chiamata a RunAsync/RunStreamingAsync
-    /// - Dopo che l'utente ha inviato un messaggio
+    /// WHEN IT'S CALLED:
+    /// - Before each RunAsync/RunStreamingAsync call
+    /// - After the user has sent a message
     ///
-    /// COSA RESTITUISCE:
-    /// - Un AIContext con Instructions che vengono aggiunte al system prompt
+    /// WHAT IT RETURNS:
+    /// - An AIContext with Instructions that are added to the system prompt
     /// </summary>
     public override ValueTask<AIContext> InvokingAsync(
         InvokingContext context,
         CancellationToken cancellationToken = default)
     {
         /*
-         * STRATEGIA:
-         * Generiamo istruzioni aggiuntive basate sulle preferenze salvate.
-         * Queste istruzioni verranno AGGIUNTE (non sostituite) alle istruzioni
-         * principali dell'agente.
+         * STRATEGY:
+         * We generate additional instructions based on saved preferences.
+         * These instructions will be ADDED (not replaced) to the agent's
+         * main instructions.
          */
 
         var instructions = GenerateContextFromPreferences();
 
-        // Restituiamo un AIContext con le istruzioni aggiuntive
+        // Return an AIContext with the additional instructions
         return new ValueTask<AIContext>(new AIContext
         {
             Instructions = instructions
@@ -135,36 +135,36 @@ public class UserPreferencesMemory : AIContextProvider
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * IMPLEMENTAZIONE DI AIContextProvider - InvokedAsync
+     * AIContextProvider IMPLEMENTATION - InvokedAsync
      * ═══════════════════════════════════════════════════════════════════════════
      *
-     * METODO CHIAVE: InvokedAsync
-     * - Viene chiamato AUTOMATICAMENTE DOPO ogni invocazione LLM
-     * - Riceve i messaggi della richiesta E della risposta
-     * - Perfetto per estrarre informazioni dalla conversazione
+     * KEY METHOD: InvokedAsync
+     * - Called AUTOMATICALLY AFTER each LLM invocation
+     * - Receives both request and response messages
+     * - Perfect for extracting information from the conversation
      */
 
     /// <summary>
-    /// Elabora la risposta dell'agente per estrarre informazioni.
+    /// Processes the agent's response to extract information.
     ///
-    /// QUANDO VIENE CHIAMATO:
-    /// - Dopo che l'LLM ha risposto
-    /// - Riceve sia i messaggi dell'utente che le risposte
+    /// WHEN IT'S CALLED:
+    /// - After the LLM has responded
+    /// - Receives both user messages and responses
     /// </summary>
     public override ValueTask InvokedAsync(
         InvokedContext context,
         CancellationToken cancellationToken = default)
     {
         /*
-         * STRATEGIA:
-         * Analizziamo i messaggi dell'utente per estrarre preferenze.
-         * In un sistema reale, potresti usare l'LLM stesso per l'estrazione!
+         * STRATEGY:
+         * We analyze user messages to extract preferences.
+         * In a real system, you might use the LLM itself for extraction!
          */
 
-        // Estraiamo info dai messaggi dell'utente
+        // Extract info from user messages
         foreach (var message in context.RequestMessages)
         {
-            // Solo messaggi dell'utente
+            // Only user messages
             if (message.Role != ChatRole.User) continue;
 
             ExtractPreferencesFromMessage(message);
@@ -175,16 +175,16 @@ public class UserPreferencesMemory : AIContextProvider
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * SERIALIZZAZIONE (per persistenza con il thread)
+     * SERIALIZATION (for persistence with the thread)
      * ═══════════════════════════════════════════════════════════════════════════
      *
-     * Il metodo Serialize permette di salvare lo stato del provider
-     * insieme al thread. Quando il thread viene deserializzato,
-     * il provider può recuperare il suo stato.
+     * The Serialize method allows saving the provider's state
+     * along with the thread. When the thread is deserialized,
+     * the provider can recover its state.
      */
 
     /// <summary>
-    /// Serializza lo stato del provider per la persistenza.
+    /// Serializes the provider's state for persistence.
     /// </summary>
     public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null)
     {
@@ -193,28 +193,29 @@ public class UserPreferencesMemory : AIContextProvider
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * ESTRAZIONE PREFERENZE DAI MESSAGGI
+     * PREFERENCE EXTRACTION FROM MESSAGES
      * ═══════════════════════════════════════════════════════════════════════════
      *
-     * APPROCCIO SEMPLIFICATO:
-     * In un sistema reale, potresti usare l'LLM stesso per estrarre info!
-     * Qui usiamo pattern matching semplice per scopi didattici.
+     * SIMPLIFIED APPROACH:
+     * In a real system, you might use the LLM itself to extract info!
+     * Here we use simple pattern matching for educational purposes.
      */
 
     private void ExtractPreferencesFromMessage(ChatMessage message)
     {
-        // Estraiamo il testo dal messaggio
+        // Extract text from the message
         var text = GetMessageText(message)?.ToLowerInvariant() ?? "";
 
         if (string.IsNullOrEmpty(text)) return;
 
         bool changed = false;
 
-        // Nome
-        if (text.Contains("mi chiamo") || text.Contains("sono "))
+        // Name
+        if (text.Contains("my name is") || text.Contains("i am ") || text.Contains("i'm "))
         {
-            var nome = ExtractAfterPhrase(text, "mi chiamo")
-                    ?? ExtractAfterPhrase(text, "sono ");
+            var nome = ExtractAfterPhrase(text, "my name is")
+                    ?? ExtractAfterPhrase(text, "i am ")
+                    ?? ExtractAfterPhrase(text, "i'm ");
             if (!string.IsNullOrEmpty(nome) && nome.Length < 30)
             {
                 Preferences.Nome = CapitalizeFirst(nome);
@@ -222,11 +223,11 @@ public class UserPreferencesMemory : AIContextProvider
             }
         }
 
-        // Progetto corrente
-        if (text.Contains("sto lavorando su") || text.Contains("sul progetto"))
+        // Current project
+        if (text.Contains("working on") || text.Contains("on the project"))
         {
-            var progetto = ExtractAfterPhrase(text, "sto lavorando su")
-                        ?? ExtractAfterPhrase(text, "sul progetto");
+            var progetto = ExtractAfterPhrase(text, "working on")
+                        ?? ExtractAfterPhrase(text, "on the project");
             if (!string.IsNullOrEmpty(progetto))
             {
                 Preferences.ProgettoCorrente = progetto;
@@ -234,19 +235,19 @@ public class UserPreferencesMemory : AIContextProvider
             }
         }
 
-        // Stile comunicazione
-        if (text.Contains("preferisco") && text.Contains("formale"))
+        // Communication style
+        if (text.Contains("prefer") && text.Contains("formal"))
         {
-            Preferences.StileComunicazione = "formale";
+            Preferences.StileComunicazione = "formal";
             changed = true;
         }
-        else if (text.Contains("dammi del tu") || text.Contains("informale"))
+        else if (text.Contains("informal") || text.Contains("casual"))
         {
-            Preferences.StileComunicazione = "informale";
+            Preferences.StileComunicazione = "informal";
             changed = true;
         }
 
-        // Interessi tecnici
+        // Technical interests
         var techKeywords = new[] { "c#", ".net", "python", "javascript", "react", "azure", "docker", "kubernetes" };
         foreach (var keyword in techKeywords)
         {
@@ -257,7 +258,7 @@ public class UserPreferencesMemory : AIContextProvider
             }
         }
 
-        // Salviamo se qualcosa è cambiato
+        // Save if something changed
         if (changed)
         {
             Preferences.UltimoAccesso = DateTime.Now;
@@ -266,8 +267,8 @@ public class UserPreferencesMemory : AIContextProvider
     }
 
     /// <summary>
-    /// Estrae il testo da un ChatMessage.
-    /// I messaggi possono avere contenuto complesso (testo, immagini, etc.)
+    /// Extracts text from a ChatMessage.
+    /// Messages can have complex content (text, images, etc.)
     /// </summary>
     private static string? GetMessageText(ChatMessage message)
     {
@@ -286,7 +287,7 @@ public class UserPreferencesMemory : AIContextProvider
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * GENERAZIONE DEL CONTESTO
+     * CONTEXT GENERATION
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
@@ -294,45 +295,45 @@ public class UserPreferencesMemory : AIContextProvider
     {
         var parts = new List<string>();
 
-        // Aggiungiamo info solo se le abbiamo
+        // Add info only if we have it
         if (!string.IsNullOrEmpty(Preferences.Nome))
         {
-            parts.Add($"L'utente si chiama {Preferences.Nome}.");
+            parts.Add($"The user's name is {Preferences.Nome}.");
         }
 
         if (!string.IsNullOrEmpty(Preferences.StileComunicazione))
         {
-            parts.Add($"Preferisce uno stile di comunicazione {Preferences.StileComunicazione}.");
+            parts.Add($"They prefer a {Preferences.StileComunicazione} communication style.");
         }
 
         if (!string.IsNullOrEmpty(Preferences.ProgettoCorrente))
         {
-            parts.Add($"Sta lavorando sul progetto: {Preferences.ProgettoCorrente}.");
+            parts.Add($"They are working on the project: {Preferences.ProgettoCorrente}.");
         }
 
         if (Preferences.ArgomentiInteresse.Count > 0)
         {
-            parts.Add($"È interessato a: {string.Join(", ", Preferences.ArgomentiInteresse)}.");
+            parts.Add($"They are interested in: {string.Join(", ", Preferences.ArgomentiInteresse)}.");
         }
 
-        // Se non abbiamo info, non aggiungiamo contesto
+        // If we have no info, don't add context
         if (parts.Count == 0)
         {
             return string.Empty;
         }
 
-        // Costruiamo il contesto completo
+        // Build the complete context
         return $"""
 
-            === INFORMAZIONI SULL'UTENTE (dalla memoria) ===
+            === USER INFORMATION (from memory) ===
             {string.Join(" ", parts)}
-            Usa queste informazioni per personalizzare le tue risposte.
+            Use this information to personalize your responses.
             """;
     }
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * PERSISTENZA PREFERENZE
+     * PREFERENCES PERSISTENCE
      * ═══════════════════════════════════════════════════════════════════════════
      */
 
@@ -353,14 +354,14 @@ public class UserPreferencesMemory : AIContextProvider
         }
         catch (Exception ex)
         {
-            // In caso di errore, partiamo con preferenze vuote
-            Console.WriteLine($"[Memory] Impossibile caricare preferenze: {ex.Message}");
+            // In case of error, start with empty preferences
+            Console.WriteLine($"[Memory] Unable to load preferences: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Salva le preferenze su file.
-    /// Chiamato automaticamente quando le preferenze cambiano.
+    /// Saves preferences to file.
+    /// Called automatically when preferences change.
     /// </summary>
     public void SavePreferences()
     {
@@ -374,7 +375,7 @@ public class UserPreferencesMemory : AIContextProvider
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Memory] Impossibile salvare preferenze: {ex.Message}");
+            Console.WriteLine($"[Memory] Unable to save preferences: {ex.Message}");
         }
     }
 
@@ -392,14 +393,14 @@ public class UserPreferencesMemory : AIContextProvider
         var start = index + phrase.Length;
         var remaining = text[start..].Trim();
 
-        // Prendiamo solo la prima parola/frase significativa
+        // Take only the first significant word/phrase
         var endIndex = remaining.IndexOfAny(['.', ',', '!', '?', '\n']);
         if (endIndex > 0)
         {
             remaining = remaining[..endIndex];
         }
 
-        // Limitiamo la lunghezza
+        // Limit the length
         if (remaining.Length > 50)
         {
             remaining = remaining[..50];
@@ -415,7 +416,7 @@ public class UserPreferencesMemory : AIContextProvider
     }
 
     /// <summary>
-    /// Resetta tutte le preferenze (per testing).
+    /// Resets all preferences (for testing).
     /// </summary>
     public void ClearPreferences()
     {

@@ -3,8 +3,8 @@
 // FILE: StringTools.cs
 // ============================================================================
 //
-// Tool MCP per manipolazione di stringhe.
-// Dimostra come creare tool con logica più complessa.
+// MCP tools for string manipulation.
+// Demonstrates how to create tools with more complex logic.
 // ============================================================================
 
 using ModelContextProtocol.Server;
@@ -15,19 +15,19 @@ using System.Text.RegularExpressions;
 namespace Server.Tools;
 
 /// <summary>
-/// Tool per operazioni su stringhe.
+/// Tools for string operations.
 /// </summary>
 [McpServerToolType]
 public sealed class StringTools
 {
     // ========================================================================
-    // TRASFORMAZIONI
+    // TRANSFORMATIONS
     // ========================================================================
 
     [McpServerTool(Name = "reverse_string")]
-    [Description("Inverte una stringa carattere per carattere.")]
+    [Description("Reverses a string character by character.")]
     public static string Reverse(
-        [Description("Stringa da invertire")] string text)
+        [Description("String to reverse")] string text)
     {
         var chars = text.ToCharArray();
         Array.Reverse(chars);
@@ -35,80 +35,80 @@ public sealed class StringTools
     }
 
     [McpServerTool(Name = "to_uppercase")]
-    [Description("Converte una stringa in maiuscolo.")]
+    [Description("Converts a string to uppercase.")]
     public static string ToUpperCase(
-        [Description("Stringa da convertire")] string text)
+        [Description("String to convert")] string text)
     {
         return text.ToUpperInvariant();
     }
 
     [McpServerTool(Name = "to_lowercase")]
-    [Description("Converte una stringa in minuscolo.")]
+    [Description("Converts a string to lowercase.")]
     public static string ToLowerCase(
-        [Description("Stringa da convertire")] string text)
+        [Description("String to convert")] string text)
     {
         return text.ToLowerInvariant();
     }
 
     [McpServerTool(Name = "to_title_case")]
-    [Description("Converte una stringa in Title Case (prima lettera di ogni parola maiuscola).")]
+    [Description("Converts a string to Title Case (first letter of each word capitalized).")]
     public static string ToTitleCase(
-        [Description("Stringa da convertire")] string text)
+        [Description("String to convert")] string text)
     {
         return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(text.ToLower());
     }
 
     // ========================================================================
-    // ANALISI
+    // ANALYSIS
     // ========================================================================
 
     [McpServerTool(Name = "count_chars")]
-    [Description("Conta i caratteri in una stringa (con e senza spazi).")]
+    [Description("Counts characters in a string (with and without spaces).")]
     public static string CountCharacters(
-        [Description("Stringa da analizzare")] string text)
+        [Description("String to analyze")] string text)
     {
         var total = text.Length;
         var withoutSpaces = text.Replace(" ", "").Length;
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
 
-        return $"Caratteri totali: {total}, Senza spazi: {withoutSpaces}, Parole: {words}";
+        return $"Total characters: {total}, Without spaces: {withoutSpaces}, Words: {words}";
     }
 
     [McpServerTool(Name = "find_replace")]
-    [Description("Cerca e sostituisce testo in una stringa.")]
+    [Description("Searches and replaces text in a string.")]
     public static string FindAndReplace(
-        [Description("Stringa originale")] string text,
-        [Description("Testo da cercare")] string find,
-        [Description("Testo sostitutivo")] string replace)
+        [Description("Original string")] string text,
+        [Description("Text to search for")] string find,
+        [Description("Replacement text")] string replace)
     {
         return text.Replace(find, replace);
     }
 
     [McpServerTool(Name = "extract_numbers")]
-    [Description("Estrae tutti i numeri da una stringa.")]
+    [Description("Extracts all numbers from a string.")]
     public static string ExtractNumbers(
-        [Description("Stringa da cui estrarre i numeri")] string text)
+        [Description("String to extract numbers from")] string text)
     {
         var numbers = Regex.Matches(text, @"-?\d+\.?\d*")
             .Select(m => m.Value)
             .ToList();
 
         if (numbers.Count == 0)
-            return "Nessun numero trovato nella stringa.";
+            return "No numbers found in the string.";
 
         return string.Join(", ", numbers);
     }
 
     // ========================================================================
-    // FORMATTAZIONE
+    // FORMATTING
     // ========================================================================
 
     [McpServerTool(Name = "slugify")]
-    [Description("Converte una stringa in formato slug (URL-friendly).")]
+    [Description("Converts a string to slug format (URL-friendly).")]
     public static string Slugify(
-        [Description("Stringa da convertire in slug")] string text)
+        [Description("String to convert to slug")] string text)
     {
-        // Rimuovi accenti
+        // Remove accents
         var normalized = text.Normalize(NormalizationForm.FormD);
         var sb = new StringBuilder();
 
@@ -123,7 +123,7 @@ public sealed class StringTools
 
         var result = sb.ToString().Normalize(NormalizationForm.FormC);
 
-        // Converti in minuscolo e sostituisci spazi con trattini
+        // Convert to lowercase and replace spaces with hyphens
         result = result.ToLowerInvariant();
         result = Regex.Replace(result, @"[^a-z0-9\s-]", "");
         result = Regex.Replace(result, @"\s+", "-");
@@ -134,10 +134,10 @@ public sealed class StringTools
     }
 
     [McpServerTool(Name = "truncate")]
-    [Description("Tronca una stringa a una lunghezza massima, aggiungendo '...' se necessario.")]
+    [Description("Truncates a string to a maximum length, adding '...' if necessary.")]
     public static string Truncate(
-        [Description("Stringa da troncare")] string text,
-        [Description("Lunghezza massima")] int maxLength)
+        [Description("String to truncate")] string text,
+        [Description("Maximum length")] int maxLength)
     {
         if (text.Length <= maxLength)
             return text;

@@ -1,225 +1,225 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // FILE: Data/SampleDocuments.cs
 // ============================================================================
 //
-// DOCUMENTI DI ESEMPIO PER TESTING
+// SAMPLE DOCUMENTS FOR TESTING
 //
-// Questa classe fornisce documenti di esempio su vari argomenti tech
-// per testare le funzionalità RAG con i diversi vector store.
+// This class provides sample documents on various tech topics
+// to test RAG functionality with different vector stores.
 //
-// I documenti sono organizzati per categoria:
-// - programming: concetti di programmazione C#
-// - database: concetti su database e SQL
-// - ai: concetti su AI e machine learning
+// Documents are organized by category:
+// - programming: C# programming concepts
+// - database: database and SQL concepts
+// - ai: AI and machine learning concepts
 //
 // ============================================================================
 
 namespace _11.RAG.VectorStores.Data;
 
 /// <summary>
-/// Fornisce documenti di esempio per popolare i vector store.
+/// Provides sample documents to populate vector stores.
 /// </summary>
 public static class SampleDocuments
 {
     // ========================================================================
-    // DOCUMENTI DI PROGRAMMAZIONE C#
+    // C# PROGRAMMING DOCUMENTS
     // ========================================================================
 
     public static readonly (string Title, string Category, string[] Chunks)[] Documents =
     [
         // --------------------------------------------------------------------
-        // Documento 1: LINQ in C#
+        // Document 1: LINQ in C#
         // --------------------------------------------------------------------
         (
             Title: "LINQ in C#",
             Category: "programming",
             Chunks: [
                 """
-                LINQ (Language Integrated Query) è una potente funzionalità di C# che
-                permette di scrivere query direttamente nel codice. LINQ fornisce una
-                sintassi uniforme per interrogare diverse fonti di dati come collezioni
-                in memoria, database SQL, documenti XML e altro ancora.
+                LINQ (Language Integrated Query) is a powerful C# feature that
+                allows you to write queries directly in code. LINQ provides a
+                uniform syntax for querying different data sources such as in-memory
+                collections, SQL databases, XML documents and more.
                 """,
 
                 """
-                La sintassi LINQ può essere espressa in due modi: query syntax e method
-                syntax. La query syntax assomiglia a SQL con le clausole from, where,
-                select. La method syntax usa metodi di estensione come Where(), Select(),
-                OrderBy() concatenati con lambda expressions.
+                LINQ syntax can be expressed in two ways: query syntax and method
+                syntax. Query syntax resembles SQL with from, where, select clauses.
+                Method syntax uses extension methods like Where(), Select(),
+                OrderBy() chained with lambda expressions.
                 """,
 
                 """
-                Le operazioni LINQ sono lazy (pigre): la query non viene eseguita finché
-                non si itera sui risultati o si chiama un metodo terminale come ToList(),
-                Count(), First(). Questo permette di costruire query complesse in modo
-                efficiente, eseguendo il lavoro solo quando necessario.
+                LINQ operations are lazy: the query is not executed until
+                you iterate over the results or call a terminal method like ToList(),
+                Count(), First(). This allows you to build complex queries efficiently,
+                doing the work only when necessary.
                 """,
 
                 """
-                LINQ to Objects opera su collezioni IEnumerable<T> in memoria.
-                LINQ to Entities traduce le query in SQL per Entity Framework.
-                LINQ to XML permette di navigare e trasformare documenti XML.
-                Ogni provider LINQ implementa l'interfaccia IQueryable<T>.
+                LINQ to Objects operates on in-memory IEnumerable<T> collections.
+                LINQ to Entities translates queries to SQL for Entity Framework.
+                LINQ to XML allows you to navigate and transform XML documents.
+                Each LINQ provider implements the IQueryable<T> interface.
                 """
             ]
         ),
 
         // --------------------------------------------------------------------
-        // Documento 2: Async/Await in C#
+        // Document 2: Async/Await in C#
         // --------------------------------------------------------------------
         (
-            Title: "Programmazione Asincrona in C#",
+            Title: "Asynchronous Programming in C#",
             Category: "programming",
             Chunks: [
                 """
-                La programmazione asincrona in C# si basa sulle keyword async e await.
-                Un metodo async restituisce Task o Task<T> e può contenere espressioni
-                await. Quando si incontra un await, il controllo ritorna al chiamante
-                finché l'operazione asincrona non completa.
+                Asynchronous programming in C# is based on the async and await keywords.
+                An async method returns Task or Task<T> and can contain await
+                expressions. When await is encountered, control returns to the caller
+                until the asynchronous operation completes.
                 """,
 
                 """
-                Task rappresenta un'operazione asincrona che può essere attesa con await.
-                Task<T> rappresenta un'operazione che restituirà un valore di tipo T.
-                ValueTask<T> è un'alternativa più efficiente quando l'operazione spesso
-                completa in modo sincrono, evitando allocazioni heap.
+                Task represents an asynchronous operation that can be awaited.
+                Task<T> represents an operation that will return a value of type T.
+                ValueTask<T> is a more efficient alternative when the operation often
+                completes synchronously, avoiding heap allocations.
                 """,
 
                 """
-                ConfigureAwait(false) indica che la continuazione non richiede il contesto
-                di sincronizzazione originale. È consigliato nelle librerie per evitare
-                deadlock e migliorare le performance. Nelle applicazioni UI invece si
-                vuole tornare sul thread UI, quindi non si usa ConfigureAwait(false).
+                ConfigureAwait(false) indicates that the continuation doesn't require the
+                original synchronization context. It's recommended in libraries to avoid
+                deadlocks and improve performance. In UI applications instead you
+                want to return to the UI thread, so you don't use ConfigureAwait(false).
                 """,
 
                 """
-                CancellationToken permette di cancellare operazioni asincrone in corso.
-                Si passa il token ai metodi async che lo supportano e si può controllare
-                IsCancellationRequested o chiamare ThrowIfCancellationRequested().
-                È buona pratica supportare sempre la cancellazione nelle API async.
+                CancellationToken allows you to cancel asynchronous operations in progress.
+                You pass the token to async methods that support it and can check
+                IsCancellationRequested or call ThrowIfCancellationRequested().
+                It's good practice to always support cancellation in async APIs.
                 """
             ]
         ),
 
         // --------------------------------------------------------------------
-        // Documento 3: SQL Server Fundamentals
+        // Document 3: SQL Server Fundamentals
         // --------------------------------------------------------------------
         (
-            Title: "Fondamenti di SQL Server",
+            Title: "SQL Server Fundamentals",
             Category: "database",
             Chunks: [
                 """
-                SQL Server è un RDBMS (Relational Database Management System) sviluppato
-                da Microsoft. Supporta il linguaggio T-SQL (Transact-SQL), un'estensione
-                di SQL standard con funzionalità procedurali come variabili, condizioni,
-                cicli e gestione errori con TRY-CATCH.
+                SQL Server is an RDBMS (Relational Database Management System) developed
+                by Microsoft. It supports the T-SQL (Transact-SQL) language, an extension
+                of standard SQL with procedural features like variables, conditions,
+                loops and error handling with TRY-CATCH.
                 """,
 
                 """
-                Gli indici in SQL Server migliorano le performance delle query. Un indice
-                clustered ordina fisicamente i dati della tabella (uno solo per tabella).
-                Gli indici non-clustered sono strutture separate che puntano ai dati.
-                L'indice covering include tutte le colonne necessarie alla query.
+                Indexes in SQL Server improve query performance. A clustered
+                index physically orders the table data (only one per table).
+                Non-clustered indexes are separate structures that point to the data.
+                A covering index includes all columns needed by the query.
                 """,
 
                 """
-                Le transazioni in SQL Server garantiscono le proprietà ACID: Atomicità
-                (tutto o niente), Consistenza (da stato valido a stato valido),
-                Isolamento (transazioni concorrenti non interferiscono), Durabilità
-                (i cambiamenti persistono anche dopo crash del sistema).
+                Transactions in SQL Server guarantee ACID properties: Atomicity
+                (all or nothing), Consistency (from valid state to valid state),
+                Isolation (concurrent transactions don't interfere), Durability
+                (changes persist even after system crash).
                 """,
 
                 """
-                SQL Server 2022 introduce il supporto nativo per i vettori (vector data type)
-                e funzioni di distanza come VECTOR_DISTANCE per calcolare similarità coseno,
-                euclidea o dot product. Questo abilita scenari di ricerca semantica e RAG
-                direttamente nel database relazionale.
+                SQL Server 2022 introduces native support for vectors (vector data type)
+                and distance functions like VECTOR_DISTANCE to calculate cosine,
+                euclidean or dot product similarity. This enables semantic search and RAG
+                scenarios directly in the relational database.
                 """
             ]
         ),
 
         // --------------------------------------------------------------------
-        // Documento 4: Machine Learning Basics
+        // Document 4: Machine Learning Basics
         // --------------------------------------------------------------------
         (
-            Title: "Introduzione al Machine Learning",
+            Title: "Introduction to Machine Learning",
             Category: "ai",
             Chunks: [
                 """
-                Il Machine Learning (ML) è un sottoinsieme dell'Intelligenza Artificiale
-                che permette ai sistemi di apprendere dai dati senza essere esplicitamente
-                programmati. Esistono tre paradigmi principali: supervised learning,
-                unsupervised learning e reinforcement learning.
+                Machine Learning (ML) is a subset of Artificial Intelligence
+                that allows systems to learn from data without being explicitly
+                programmed. There are three main paradigms: supervised learning,
+                unsupervised learning and reinforcement learning.
                 """,
 
                 """
-                Nel supervised learning, il modello apprende da esempi etichettati. Per
-                problemi di classificazione (predire categorie) si usano algoritmi come
-                logistic regression, decision trees, random forest, SVM. Per regressione
-                (predire valori continui) si usa linear regression, gradient boosting.
+                In supervised learning, the model learns from labeled examples. For
+                classification problems (predicting categories) algorithms like
+                logistic regression, decision trees, random forest, SVM are used. For regression
+                (predicting continuous values) linear regression, gradient boosting are used.
                 """,
 
                 """
-                Nel unsupervised learning, il modello trova pattern in dati non etichettati.
-                Il clustering raggruppa dati simili (K-means, DBSCAN, hierarchical).
-                La riduzione dimensionale comprime i dati preservando l'informazione
-                (PCA, t-SNE, UMAP). Utile per visualizzazione ed esplorazione dati.
+                In unsupervised learning, the model finds patterns in unlabeled data.
+                Clustering groups similar data (K-means, DBSCAN, hierarchical).
+                Dimensionality reduction compresses data while preserving information
+                (PCA, t-SNE, UMAP). Useful for visualization and data exploration.
                 """,
 
                 """
-                Gli embedding sono rappresentazioni vettoriali dense di dati (testi, immagini).
-                Word2Vec e GloVe creano embedding per parole. I modelli transformer come
-                BERT e GPT generano embedding contestuali per frasi intere. Gli embedding
-                sono fondamentali per la ricerca semantica e i sistemi RAG.
+                Embeddings are dense vector representations of data (text, images).
+                Word2Vec and GloVe create embeddings for words. Transformer models like
+                BERT and GPT generate contextual embeddings for entire sentences. Embeddings
+                are fundamental for semantic search and RAG systems.
                 """
             ]
         ),
 
         // --------------------------------------------------------------------
-        // Documento 5: RAG Architecture
+        // Document 5: RAG Architecture
         // --------------------------------------------------------------------
         (
-            Title: "Architettura RAG",
+            Title: "RAG Architecture",
             Category: "ai",
             Chunks: [
                 """
-                RAG (Retrieval-Augmented Generation) è un pattern architetturale che
-                combina la potenza dei Large Language Models con una base di conoscenza
-                esterna. Invece di fare affidamento solo sulla conoscenza del modello,
-                RAG recupera informazioni rilevanti e le passa come contesto.
+                RAG (Retrieval-Augmented Generation) is an architectural pattern that
+                combines the power of Large Language Models with an external
+                knowledge base. Instead of relying only on the model's knowledge,
+                RAG retrieves relevant information and passes it as context.
                 """,
 
                 """
-                Il flusso RAG tipico è: 1) L'utente pone una domanda. 2) La domanda viene
-                convertita in un vettore embedding. 3) Si cerca nel vector store i documenti
-                più simili. 4) I documenti recuperati vengono passati all'LLM insieme alla
-                domanda. 5) L'LLM genera una risposta basata sul contesto fornito.
+                The typical RAG flow is: 1) User asks a question. 2) The question is
+                converted to an embedding vector. 3) Search the vector store for most
+                similar documents. 4) Retrieved documents are passed to the LLM along with
+                the question. 5) LLM generates an answer based on the provided context.
                 """,
 
                 """
-                Il chunking è cruciale per RAG: i documenti vanno divisi in frammenti di
-                dimensione appropriata (tipicamente 200-500 token). Chunk troppo piccoli
-                perdono contesto, troppo grandi diluiscono la rilevanza. Si può usare
-                overlap tra chunk per preservare continuità semantica.
+                Chunking is crucial for RAG: documents must be divided into fragments of
+                appropriate size (typically 200-500 tokens). Chunks too small
+                lose context, too large dilute relevance. You can use
+                overlap between chunks to preserve semantic continuity.
                 """,
 
                 """
-                I vector store (Qdrant, Pinecone, Weaviate, Chroma, SQL Server) memorizzano
-                gli embedding e supportano ricerca per similarità. La scelta dipende da:
-                scala (milioni/miliardi di vettori), performance, costi, funzionalità di
-                filtering, integrazione con l'ecosistema esistente.
+                Vector stores (Qdrant, Pinecone, Weaviate, Chroma, SQL Server) store
+                embeddings and support similarity search. The choice depends on:
+                scale (millions/billions of vectors), performance, costs, filtering
+                features, integration with existing ecosystem.
                 """
             ]
         )
     ];
 
     // ========================================================================
-    // HELPER PER GENERARE DOCUMENTCHUNK
+    // HELPER TO GENERATE DOCUMENTCHUNK
     // ========================================================================
 
     /// <summary>
-    /// Genera chunk per Qdrant (con indice HNSW).
+    /// Generates chunks for Qdrant (with HNSW index).
     /// </summary>
     public static IEnumerable<DocumentChunkQdrant> GetChunksForQdrant()
     {
@@ -240,7 +240,7 @@ public static class SampleDocuments
     }
 
     /// <summary>
-    /// Genera chunk per SQL Server (con indice Flat).
+    /// Generates chunks for SQL Server (with Flat index).
     /// </summary>
     public static IEnumerable<DocumentChunkSqlServer> GetChunksForSqlServer()
     {
@@ -261,7 +261,7 @@ public static class SampleDocuments
     }
 
     /// <summary>
-    /// Genera chunk per PostgreSQL + pgvector (con indice HNSW).
+    /// Generates chunks for PostgreSQL + pgvector (with HNSW index).
     /// </summary>
     public static IEnumerable<DocumentChunkPostgres> GetChunksForPostgres()
     {
@@ -282,16 +282,16 @@ public static class SampleDocuments
     }
 
     /// <summary>
-    /// Genera un Guid deterministico basato su una stringa e un indice.
+    /// Generates a deterministic Guid based on a string and an index.
     /// </summary>
     /// <remarks>
-    /// Questo permette di avere sempre lo stesso ID per lo stesso chunk,
-    /// utile per operazioni di upsert (insert or update).
+    /// This allows having the same ID for the same chunk,
+    /// useful for upsert operations (insert or update).
     /// </remarks>
     private static Guid GenerateDeterministicGuid(string text, int index)
     {
-        // Usa un hash MD5 per generare un Guid deterministico
-        // MD5 produce 16 byte, esattamente la dimensione di un Guid
+        // Use an MD5 hash to generate a deterministic Guid
+        // MD5 produces 16 bytes, exactly the size of a Guid
         var input = $"{text}-chunk-{index}";
         var inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
         var hashBytes = System.Security.Cryptography.MD5.HashData(inputBytes);

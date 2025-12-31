@@ -2,32 +2,32 @@
 // 05. CODE REVIEWER - RAG
 // FILE: TextSearchStore.cs
 // ============================================================================
-// Questo file gestisce il caricamento, chunking e ricerca
-// dei documenti della knowledge base.
+// This file manages loading, chunking, and searching
+// of knowledge base documents.
 //
-// PIPELINE RAG COMPLETA:
+// COMPLETE RAG PIPELINE:
 //
-// 1. INGESTION (una volta all'avvio):
+// 1. INGESTION (once at startup):
 //    ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-//    │  Carica MD   │ ──► │   Chunking   │ ──► │  Upsert nel  │
-//    │  files       │     │  documenti   │     │ Vector Store │
+//    │  Load MD     │ ──► │   Chunking   │ ──► │  Upsert in   │
+//    │  files       │     │  documents   │     │ Vector Store │
 //    └──────────────┘     └──────────────┘     └──────────────┘
 //                                                     │
 //                                                     ▼
 //                                              ┌──────────────┐
 //                                              │ Embedding    │
-//                                              │ (automatico) │
+//                                              │ (automatic)  │
 //                                              └──────────────┘
 //
-// 2. RETRIEVAL (ad ogni query):
+// 2. RETRIEVAL (on each query):
 //    ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-//    │   Query      │ ──► │   Ricerca    │ ──► │ Top-K chunk  │
-//    │   utente     │     │  semantica   │     │ rilevanti    │
+//    │   User       │ ──► │   Semantic   │ ──► │ Top-K        │
+//    │   query      │     │   search     │     │ relevant     │
 //    └──────────────┘     └──────────────┘     └──────────────┘
 //
-// NOTA: Gli embeddings vengono generati AUTOMATICAMENTE dal vector store
-// grazie alla configurazione EmbeddingGenerator. Non devi gestire
-// manualmente i vettori float[]!
+// NOTE: Embeddings are generated AUTOMATICALLY by the vector store
+// thanks to the EmbeddingGenerator configuration. You don't need to
+// manually handle the float[] vectors!
 // ============================================================================
 
 using Microsoft.Extensions.VectorData;
@@ -38,109 +38,109 @@ using System.Text.RegularExpressions;
 namespace CodeReviewer.RAG.Rag;
 
 /// <summary>
-/// Store per la ricerca semantica nei documenti della knowledge base.
+/// Store for semantic search in knowledge base documents.
 ///
-/// RESPONSABILITÀ:
-/// 1. Caricare documenti markdown dalla cartella KnowledgeBase
-/// 2. Dividere i documenti in chunk gestibili
-/// 3. Memorizzare nel vector store (embeddings generati automaticamente!)
-/// 4. Eseguire ricerche semantiche
+/// RESPONSIBILITIES:
+/// 1. Load markdown documents from the KnowledgeBase folder
+/// 2. Split documents into manageable chunks
+/// 3. Store in vector store (embeddings generated automatically!)
+/// 4. Execute semantic searches
 ///
-/// PATTERN IMPORTANTE:
-/// Il vector store è configurato con un EmbeddingGenerator.
-/// Quando fai Upsert o Search, l'embedding viene generato automaticamente
-/// dalla proprietà VectorStoreVector del record.
+/// IMPORTANT PATTERN:
+/// The vector store is configured with an EmbeddingGenerator.
+/// When you do Upsert or Search, the embedding is automatically generated
+/// from the VectorStoreVector property of the record.
 /// </summary>
 public sealed class TextSearchStore
 {
     // ========================================================================
-    // DIPENDENZE
+    // DEPENDENCIES
     // ========================================================================
 
     /// <summary>
-    /// Collezione nel vector store dove memorizziamo i chunk.
-    /// InMemoryCollection gestisce automaticamente gli embeddings
-    /// grazie all'EmbeddingGenerator configurato nel vector store.
+    /// Collection in the vector store where we store chunks.
+    /// InMemoryCollection automatically handles embeddings
+    /// thanks to the EmbeddingGenerator configured in the vector store.
     /// </summary>
     private readonly InMemoryCollection<string, TextSearchDocument> _collection;
 
     // ========================================================================
-    // CONFIGURAZIONE CHUNKING
+    // CHUNKING CONFIGURATION
     // ========================================================================
 
     /// <summary>
-    /// Dimensione massima di ogni chunk in caratteri.
+    /// Maximum size of each chunk in characters.
     ///
     /// TRADE-OFF:
-    /// - Chunk piccoli (300-500): ricerca più precisa, ma perde contesto
-    /// - Chunk grandi (1000-2000): più contesto, ma meno preciso
+    /// - Small chunks (300-500): more precise search, but loses context
+    /// - Large chunks (1000-2000): more context, but less precise
     ///
-    /// 800 è un buon compromesso per documentazione tecnica.
+    /// 800 is a good compromise for technical documentation.
     /// </summary>
     private const int MaxChunkSize = 800;
 
     /// <summary>
-    /// Overlap tra chunk consecutivi in caratteri.
+    /// Overlap between consecutive chunks in characters.
     ///
-    /// L'overlap serve a:
-    /// - Non perdere informazioni ai confini dei chunk
-    /// - Migliorare la continuità del contesto
+    /// The overlap serves to:
+    /// - Not lose information at chunk boundaries
+    /// - Improve context continuity
     ///
-    /// 100 caratteri = circa 2-3 righe di codice
+    /// 100 characters = approximately 2-3 lines of code
     /// </summary>
     private const int ChunkOverlap = 100;
 
     /// <summary>
-    /// Nome della collezione nel vector store.
+    /// Name of the collection in the vector store.
     /// </summary>
     private const string CollectionName = "code_review_knowledge";
 
     // ========================================================================
-    // COSTRUTTORE
+    // CONSTRUCTOR
     // ========================================================================
 
     /// <summary>
-    /// Crea un nuovo TextSearchStore.
+    /// Creates a new TextSearchStore.
     /// </summary>
-    /// <param name="vectorStore">Vector store con EmbeddingGenerator configurato</param>
+    /// <param name="vectorStore">Vector store with configured EmbeddingGenerator</param>
     public TextSearchStore(InMemoryVectorStore vectorStore)
     {
-        // Ottiene (o crea) la collezione per i nostri documenti
-        // TextSearchDocument è il tipo di record che memorizziamo
-        // string è il tipo della chiave (ChunkId)
+        // Gets (or creates) the collection for our documents
+        // TextSearchDocument is the type of record we store
+        // string is the type of the key (ChunkId)
         _collection = vectorStore.GetCollection<string, TextSearchDocument>(CollectionName);
     }
 
     // ========================================================================
-    // INGESTION: CARICAMENTO KNOWLEDGE BASE
+    // INGESTION: LOADING KNOWLEDGE BASE
     // ========================================================================
 
     /// <summary>
-    /// Carica tutti i documenti markdown dalla cartella KnowledgeBase.
+    /// Loads all markdown documents from the KnowledgeBase folder.
     ///
-    /// PROCESSO:
-    /// 1. Trova tutti i file .md nella cartella
-    /// 2. Per ogni file: leggi, chunka, memorizza
-    /// 3. Gli embeddings vengono generati automaticamente!
+    /// PROCESS:
+    /// 1. Find all .md files in the folder
+    /// 2. For each file: read, chunk, store
+    /// 3. Embeddings are generated automatically!
     /// </summary>
-    /// <param name="knowledgeBasePath">Percorso della cartella KnowledgeBase</param>
-    /// <returns>Numero di chunk caricati</returns>
+    /// <param name="knowledgeBasePath">Path to the KnowledgeBase folder</param>
+    /// <returns>Number of chunks loaded</returns>
     public async Task<int> LoadKnowledgeBaseAsync(string knowledgeBasePath)
     {
-        // Assicuriamoci che la collezione esista
-        // CreateIfNotExists: crea solo se non esiste già
+        // Make sure the collection exists
+        // CreateIfNotExists: creates only if it doesn't exist already
         await _collection.EnsureCollectionExistsAsync();
 
-        // Trova tutti i file markdown
+        // Find all markdown files
         var markdownFiles = Directory.GetFiles(knowledgeBasePath, "*.md");
 
         if (markdownFiles.Length == 0)
         {
-            Console.WriteLine($"⚠️  Nessun file .md trovato in {knowledgeBasePath}");
+            Console.WriteLine($"⚠️  No .md files found in {knowledgeBasePath}");
             return 0;
         }
 
-        Console.WriteLine($"📚 Trovati {markdownFiles.Length} documenti nella knowledge base");
+        Console.WriteLine($"📚 Found {markdownFiles.Length} documents in the knowledge base");
 
         var totalChunks = 0;
 
@@ -150,33 +150,33 @@ public sealed class TextSearchStore
             totalChunks += chunksLoaded;
         }
 
-        Console.WriteLine($"✅ Caricati {totalChunks} chunk totali nel vector store");
+        Console.WriteLine($"✅ Loaded {totalChunks} total chunks in the vector store");
 
         return totalChunks;
     }
 
     /// <summary>
-    /// Carica un singolo documento markdown.
+    /// Loads a single markdown document.
     /// </summary>
-    /// <param name="filePath">Percorso del file .md</param>
-    /// <returns>Numero di chunk creati</returns>
+    /// <param name="filePath">Path to the .md file</param>
+    /// <returns>Number of chunks created</returns>
     private async Task<int> LoadDocumentAsync(string filePath)
     {
-        // Estrai informazioni dal file
+        // Extract information from the file
         var fileName = Path.GetFileNameWithoutExtension(filePath);
         var content = await File.ReadAllTextAsync(filePath);
 
-        // Estrai il titolo dal primo heading markdown (# Titolo)
+        // Extract the title from the first markdown heading (# Title)
         var title = ExtractTitle(content) ?? fileName;
 
-        Console.WriteLine($"  📄 Caricando: {title}");
+        Console.WriteLine($"  📄 Loading: {title}");
 
-        // Dividi il documento in chunk
+        // Split the document into chunks
         var chunks = ChunkDocument(content);
 
-        Console.WriteLine($"     → {chunks.Count} chunk creati");
+        Console.WriteLine($"     → {chunks.Count} chunks created");
 
-        // Crea e memorizza i documenti per ogni chunk
+        // Create and store documents for each chunk
         var chunkCount = 0;
         foreach (var (text, index) in chunks.Select((t, i) => (t, i)))
         {
@@ -190,48 +190,48 @@ public sealed class TextSearchStore
                 Text = text
             };
 
-            // UpsertAsync: inserisce o aggiorna se esiste già
-            // L'embedding viene generato AUTOMATICAMENTE dal vector store
-            // usando la proprietà EmbeddingText del documento!
+            // UpsertAsync: inserts or updates if it already exists
+            // The embedding is generated AUTOMATICALLY by the vector store
+            // using the EmbeddingText property of the document!
             await _collection.UpsertAsync(document);
             chunkCount++;
 
-            // Mostra progresso
+            // Show progress
             Console.Write($"\r     → Embedding chunk {chunkCount}/{chunks.Count}");
         }
 
-        Console.WriteLine(); // Nuova linea dopo il progresso
+        Console.WriteLine(); // New line after progress
 
         return chunkCount;
     }
 
     // ========================================================================
-    // CHUNKING: DIVISIONE DOCUMENTI
+    // CHUNKING: SPLITTING DOCUMENTS
     // ========================================================================
 
     /// <summary>
-    /// Divide un documento in chunk di dimensione gestibile.
+    /// Splits a document into manageable-sized chunks.
     ///
-    /// STRATEGIA DI CHUNKING:
-    /// 1. Dividi per sezioni markdown (## heading)
-    /// 2. Se una sezione è troppo grande, dividi per paragrafi
-    /// 3. Mantieni overlap tra chunk consecutivi
+    /// CHUNKING STRATEGY:
+    /// 1. Split by markdown sections (## heading)
+    /// 2. If a section is too large, split by paragraphs
+    /// 3. Maintain overlap between consecutive chunks
     ///
-    /// Questo preserva la struttura logica del documento.
+    /// This preserves the logical structure of the document.
     /// </summary>
-    /// <param name="content">Contenuto del documento</param>
-    /// <returns>Lista di chunk testuali</returns>
+    /// <param name="content">Document content</param>
+    /// <returns>List of text chunks</returns>
     private List<string> ChunkDocument(string content)
     {
         var chunks = new List<string>();
 
-        // Prima dividiamo per sezioni markdown (## heading)
-        // Questo preserva la struttura logica del documento
+        // First we split by markdown sections (## heading)
+        // This preserves the logical structure of the document
         var sections = SplitByMarkdownSections(content);
 
         foreach (var section in sections)
         {
-            // Se la sezione è piccola abbastanza, usala così com'è
+            // If the section is small enough, use it as is
             if (section.Length <= MaxChunkSize)
             {
                 if (!string.IsNullOrWhiteSpace(section))
@@ -241,7 +241,7 @@ public sealed class TextSearchStore
             }
             else
             {
-                // Sezione troppo grande: dividi ulteriormente
+                // Section too large: split further
                 var subChunks = SplitLargeSection(section);
                 chunks.AddRange(subChunks);
             }
@@ -251,14 +251,14 @@ public sealed class TextSearchStore
     }
 
     /// <summary>
-    /// Divide il contenuto per sezioni markdown (## heading).
+    /// Splits content by markdown sections (## heading).
     /// </summary>
     private List<string> SplitByMarkdownSections(string content)
     {
         var sections = new List<string>();
 
-        // Pattern per heading markdown: # o ## o ### etc.
-        // (?=^#{1,3}\s) = lookahead per trovare heading senza consumarlo
+        // Pattern for markdown headings: # or ## or ### etc.
+        // (?=^#{1,3}\s) = lookahead to find heading without consuming it
         var pattern = @"(?=^#{1,3}\s)";
         var parts = Regex.Split(content, pattern, RegexOptions.Multiline);
 
@@ -274,7 +274,7 @@ public sealed class TextSearchStore
     }
 
     /// <summary>
-    /// Divide una sezione grande in chunk più piccoli con overlap.
+    /// Splits a large section into smaller chunks with overlap.
     /// </summary>
     private List<string> SplitLargeSection(string section)
     {
@@ -283,25 +283,25 @@ public sealed class TextSearchStore
 
         while (currentPosition < section.Length)
         {
-            // Calcola la fine del chunk
+            // Calculate the end of the chunk
             var endPosition = Math.Min(currentPosition + MaxChunkSize, section.Length);
 
-            // Se non siamo alla fine, cerca un punto di rottura naturale
-            // (fine paragrafo, fine frase, spazio)
+            // If we're not at the end, look for a natural break point
+            // (end of paragraph, end of sentence, space)
             if (endPosition < section.Length)
             {
-                // Cerca fine paragrafo (doppio newline)
+                // Look for end of paragraph (double newline)
                 var breakPoint = section.LastIndexOf("\n\n", endPosition, endPosition - currentPosition);
 
                 if (breakPoint <= currentPosition)
                 {
-                    // Cerca fine frase (. ! ?)
+                    // Look for end of sentence (. ! ?)
                     breakPoint = section.LastIndexOfAny(new[] { '.', '!', '?' }, endPosition - 1, endPosition - currentPosition);
                 }
 
                 if (breakPoint <= currentPosition)
                 {
-                    // Cerca spazio
+                    // Look for space
                     breakPoint = section.LastIndexOf(' ', endPosition - 1, endPosition - currentPosition);
                 }
 
@@ -311,7 +311,7 @@ public sealed class TextSearchStore
                 }
             }
 
-            // Estrai il chunk
+            // Extract the chunk
             var chunk = section.Substring(currentPosition, endPosition - currentPosition).Trim();
 
             if (!string.IsNullOrWhiteSpace(chunk))
@@ -319,10 +319,10 @@ public sealed class TextSearchStore
                 chunks.Add(chunk);
             }
 
-            // Avanza con overlap
+            // Advance with overlap
             currentPosition = endPosition - ChunkOverlap;
 
-            // Evita loop infiniti
+            // Avoid infinite loops
             if (currentPosition <= 0 || currentPosition >= section.Length)
             {
                 break;
@@ -333,54 +333,54 @@ public sealed class TextSearchStore
     }
 
     // ========================================================================
-    // RETRIEVAL: RICERCA SEMANTICA
+    // RETRIEVAL: SEMANTIC SEARCH
     // ========================================================================
 
     /// <summary>
-    /// Cerca i chunk più rilevanti per una query.
+    /// Searches for the most relevant chunks for a query.
     ///
-    /// PROCESSO (tutto automatico!):
-    /// 1. Il vector store genera l'embedding della query
-    /// 2. Cerca per similarità coseno nel vector store
-    /// 3. Ritorna i top-K chunk più simili
+    /// PROCESS (all automatic!):
+    /// 1. The vector store generates the query embedding
+    /// 2. Searches by cosine similarity in the vector store
+    /// 3. Returns the top-K most similar chunks
     ///
-    /// La ricerca semantica trova documenti rilevanti anche se
-    /// non contengono le parole esatte della query.
-    /// Es: "gestione eccezioni" trova documenti su "error handling"
+    /// Semantic search finds relevant documents even if
+    /// they don't contain the exact words from the query.
+    /// E.g.: "exception handling" finds documents about "error handling"
     /// </summary>
-    /// <param name="query">Query di ricerca</param>
-    /// <param name="topK">Numero massimo di risultati</param>
-    /// <param name="minScore">Score minimo di similarità (0-1)</param>
-    /// <returns>Lista di chunk rilevanti con score</returns>
+    /// <param name="query">Search query</param>
+    /// <param name="topK">Maximum number of results</param>
+    /// <param name="minScore">Minimum similarity score (0-1)</param>
+    /// <returns>List of relevant chunks with scores</returns>
     public async Task<List<SearchResult>> SearchAsync(
         string query,
         int topK = 3,
         float minScore = 0.3f)
     {
-        // Configura la ricerca
-        // IncludeVectors = false perché non ci servono i vettori raw
+        // Configure the search
+        // IncludeVectors = false because we don't need the raw vectors
         var searchOptions = new VectorSearchOptions<TextSearchDocument>
         {
             IncludeVectors = false
         };
 
-        // Esegui ricerca semantica
+        // Execute semantic search
         // SearchAsync(query, topK, options):
-        // - query: stringa di ricerca
-        // - topK: numero di risultati da restituire
-        // - options: opzioni di ricerca
-        // Il vector store genera automaticamente l'embedding della query!
+        // - query: search string
+        // - topK: number of results to return
+        // - options: search options
+        // The vector store automatically generates the query embedding!
         //
-        // NOTA: SearchAsync ritorna IAsyncEnumerable<VectorSearchResult<T>>,
-        // non un Task! Quindi NON si usa await qui, ma await foreach per iterare.
+        // NOTE: SearchAsync returns IAsyncEnumerable<VectorSearchResult<T>>,
+        // not a Task! So we DON'T use await here, but await foreach to iterate.
         var searchResults = _collection.SearchAsync(query, topK, searchOptions);
 
-        // Filtra per score minimo e converti in nostro formato
+        // Filter by minimum score and convert to our format
         var results = new List<SearchResult>();
 
         await foreach (var result in searchResults)
         {
-            // Score è la similarità coseno (0-1, dove 1 = identico)
+            // Score is cosine similarity (0-1, where 1 = identical)
             if (result.Score >= minScore)
             {
                 results.Add(new SearchResult
@@ -395,16 +395,16 @@ public sealed class TextSearchStore
     }
 
     /// <summary>
-    /// Genera il contesto da iniettare all'agente basato sulla query.
+    /// Generates the context to inject to the agent based on the query.
     ///
-    /// Questo metodo:
-    /// 1. Cerca i chunk rilevanti
-    /// 2. Li formatta come contesto per l'LLM
-    /// 3. Include citazioni delle fonti
+    /// This method:
+    /// 1. Searches for relevant chunks
+    /// 2. Formats them as context for the LLM
+    /// 3. Includes source citations
     /// </summary>
-    /// <param name="query">Query dell'utente</param>
-    /// <param name="topK">Numero di chunk da includere</param>
-    /// <returns>Contesto formattato per l'agente</returns>
+    /// <param name="query">User query</param>
+    /// <param name="topK">Number of chunks to include</param>
+    /// <returns>Formatted context for the agent</returns>
     public async Task<string> GetContextForQueryAsync(string query, int topK = 3)
     {
         var results = await SearchAsync(query, topK);
@@ -438,29 +438,29 @@ public sealed class TextSearchStore
     // ========================================================================
 
     /// <summary>
-    /// Estrae il titolo dal primo heading markdown.
-    /// Es: "# SOLID Principles" → "SOLID Principles"
+    /// Extracts the title from the first markdown heading.
+    /// E.g.: "# SOLID Principles" → "SOLID Principles"
     /// </summary>
     private string? ExtractTitle(string content)
     {
-        // Cerca pattern: # Titolo
+        // Search for pattern: # Title
         var match = Regex.Match(content, @"^#\s+(.+)$", RegexOptions.Multiline);
         return match.Success ? match.Groups[1].Value.Trim() : null;
     }
 }
 
 /// <summary>
-/// Risultato di una ricerca nel vector store.
+/// Result of a search in the vector store.
 /// </summary>
 public class SearchResult
 {
     /// <summary>
-    /// Il documento (chunk) trovato.
+    /// The document (chunk) found.
     /// </summary>
     public required TextSearchDocument Document { get; init; }
 
     /// <summary>
-    /// Score di similarità (0-1, dove 1 = perfettamente simile).
+    /// Similarity score (0-1, where 1 = perfectly similar).
     /// </summary>
     public required float Score { get; init; }
 }

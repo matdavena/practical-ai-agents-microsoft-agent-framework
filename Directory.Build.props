@@ -2,75 +2,75 @@
   ╔══════════════════════════════════════════════════════════════════════════════╗
   ║                    LEARNING AGENT FRAMEWORK - BUILD PROPS                     ║
   ╠══════════════════════════════════════════════════════════════════════════════╣
-  ║  Questo file definisce le proprietà di build comuni a TUTTI i progetti       ║
-  ║  della solution. Viene automaticamente importato da MSBuild.                  ║
+  ║  This file defines common build properties for ALL projects in the solution. ║
+  ║  It is automatically imported by MSBuild.                                     ║
   ║                                                                               ║
-  ║  Vantaggi:                                                                    ║
-  ║  - Configurazione centralizzata (DRY principle)                               ║
-  ║  - Consistenza tra tutti i progetti                                           ║
-  ║  - Facile manutenzione delle versioni e settings                              ║
+  ║  Benefits:                                                                    ║
+  ║  - Centralized configuration (DRY principle)                                  ║
+  ║  - Consistency across all projects                                            ║
+  ║  - Easy maintenance of versions and settings                                  ║
   ╚══════════════════════════════════════════════════════════════════════════════╝
 -->
 <Project>
   <PropertyGroup>
     <!--
-      Target Framework: .NET 10 (ultima versione)
-      Questo imposta il framework di destinazione per tutti i progetti
+      Target Framework: .NET 10 (latest version)
+      This sets the target framework for all projects
     -->
     <TargetFramework>net10.0</TargetFramework>
 
     <!--
-      Abilita le Nullable Reference Types (NRT)
-      Aiuta a prevenire NullReferenceException a compile-time
-      Best practice moderna in C#
+      Enable Nullable Reference Types (NRT)
+      Helps prevent NullReferenceException at compile-time
+      Modern C# best practice
     -->
     <Nullable>enable</Nullable>
 
     <!--
-      Abilita l'uso implicito degli using globali
-      Include automaticamente namespace comuni come System, System.Collections.Generic, etc.
+      Enable implicit global usings
+      Automatically includes common namespaces like System, System.Collections.Generic, etc.
     -->
     <ImplicitUsings>enable</ImplicitUsings>
 
     <!--
-      Usa l'ultima versione del linguaggio C#
-      Permette di usare tutte le feature più recenti
+      Use the latest C# language version
+      Allows using all the newest language features
     -->
     <LangVersion>latest</LangVersion>
 
     <!--
-      Tratta i warning come errori in Release
-      Forza un codice più pulito e robusto
+      Treat warnings as errors in Release
+      Enforces cleaner and more robust code
     -->
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
 
     <!--
-      Abilita la gestione centralizzata dei pacchetti NuGet
-      Le versioni sono definite in Directory.Packages.props
+      Enable centralized NuGet package management
+      Versions are defined in Directory.Packages.props
     -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <!--
-    Informazioni comuni per tutti gli assembly
-    Utile per identificazione e documentazione
+    Common information for all assemblies
+    Useful for identification and documentation
   -->
   <PropertyGroup>
     <Authors>Learning Agent Framework Team</Authors>
     <Company>AI Learning Lab</Company>
     <Product>Learning Agent Framework</Product>
-    <Description>Progetti di apprendimento per Microsoft Agent Framework</Description>
+    <Description>Learning projects for Microsoft Agent Framework</Description>
     <Copyright>Copyright © 2025</Copyright>
   </PropertyGroup>
 
   <!--
-    Configurazione per una migliore esperienza di sviluppo
+    Configuration for a better development experience
   -->
   <PropertyGroup>
-    <!-- Genera file XML per IntelliSense -->
+    <!-- Generate XML files for IntelliSense -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <!-- Disabilita warning per commenti XML mancanti (troppo rumore durante lo sviluppo) -->
+    <!-- Disable warnings for missing XML comments (too noisy during development) -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 </Project>

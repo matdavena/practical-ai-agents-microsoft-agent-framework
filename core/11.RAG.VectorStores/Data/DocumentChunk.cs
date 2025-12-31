@@ -1,20 +1,20 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // FILE: Data/DocumentChunk.cs
 // ============================================================================
 //
-// MODELLO DATI PER I CHUNK DI DOCUMENTO
+// DATA MODEL FOR DOCUMENT CHUNKS
 //
-// Questa classe rappresenta un frammento di documento da indicizzare nel
-// vector store. Ogni chunk contiene:
-// - Un ID univoco (Guid per compatibilità con Qdrant)
-// - Il testo del contenuto
-// - Metadati (titolo, categoria, ecc.)
-// - Il vettore embedding (generato manualmente)
+// This class represents a document fragment to be indexed in the
+// vector store. Each chunk contains:
+// - A unique ID (Guid for compatibility with Qdrant)
+// - The content text
+// - Metadata (title, category, etc.)
+// - The embedding vector (generated manually)
 //
-// IMPORTANTE: A differenza di InMemoryVectorStore, i connector Qdrant e
-// SQL Server richiedono che gli embedding siano generati manualmente
-// PRIMA dell'inserimento nel vector store.
+// IMPORTANT: Unlike InMemoryVectorStore, the Qdrant and
+// SQL Server connectors require embeddings to be generated manually
+// BEFORE insertion into the vector store.
 //
 // ============================================================================
 
@@ -23,93 +23,93 @@ using Microsoft.Extensions.VectorData;
 namespace _11.RAG.VectorStores.Data;
 
 /// <summary>
-/// Rappresenta un chunk di documento indicizzato nel vector store.
+/// Represents a document chunk indexed in the vector store.
 /// </summary>
 /// <remarks>
-/// La struttura è ottimizzata per scenari RAG:
-/// - Title e Category sono metadati per filtering
-/// - Content contiene il testo da passare all'LLM come contesto
-/// - Embedding contiene il vettore per la ricerca semantica
+/// The structure is optimized for RAG scenarios:
+/// - Title and Category are metadata for filtering
+/// - Content contains the text to pass to the LLM as context
+/// - Embedding contains the vector for semantic search
 /// </remarks>
 public sealed class DocumentChunk
 {
     // ========================================================================
-    // CHIAVE PRIMARIA
+    // PRIMARY KEY
     // ========================================================================
-    // [VectorStoreKey] indica il campo usato come identificatore univoco.
+    // [VectorStoreKey] indicates the field used as unique identifier.
     //
-    // NOTA: Qdrant supporta solo chiavi Guid o ulong (non string).
-    // Usiamo Guid per compatibilità con entrambi i vector store.
+    // NOTE: Qdrant only supports Guid or ulong keys (not string).
+    // We use Guid for compatibility with both vector stores.
 
     [VectorStoreKey]
     public Guid Id { get; set; } = Guid.Empty;
 
     // ========================================================================
-    // CAMPI DATI (METADATA)
+    // DATA FIELDS (METADATA)
     // ========================================================================
-    // [VectorStoreData] indica campi che contengono dati testuali.
-    // Questi campi vengono memorizzati e restituiti nei risultati.
+    // [VectorStoreData] indicates fields that contain textual data.
+    // These fields are stored and returned in results.
 
     /// <summary>
-    /// Titolo del documento sorgente.
+    /// Title of the source document.
     /// </summary>
     [VectorStoreData]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// Categoria del documento (es. "programming", "database", "ai").
+    /// Category of the document (e.g. "programming", "database", "ai").
     /// </summary>
     [VectorStoreData]
     public string Category { get; set; } = string.Empty;
 
     /// <summary>
-    /// Contenuto testuale del chunk.
+    /// Text content of the chunk.
     /// </summary>
     /// <remarks>
-    /// Questo è il testo che verrà passato all'LLM come contesto.
+    /// This is the text that will be passed to the LLM as context.
     /// </remarks>
     [VectorStoreData]
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// Indice del chunk all'interno del documento originale.
+    /// Index of the chunk within the original document.
     /// </summary>
     [VectorStoreData]
     public int ChunkIndex { get; set; }
 
     // ========================================================================
-    // VETTORE EMBEDDING
+    // EMBEDDING VECTOR
     // ========================================================================
-    // [VectorStoreVector] indica il campo che contiene l'embedding.
+    // [VectorStoreVector] indicates the field that contains the embedding.
     //
-    // IMPORTANTE: Per Qdrant e SQL Server, l'embedding deve essere un
-    // ReadOnlyMemory<float>, NON una stringa. Gli embedding devono essere
-    // generati manualmente PRIMA dell'inserimento.
+    // IMPORTANT: For Qdrant and SQL Server, the embedding must be a
+    // ReadOnlyMemory<float>, NOT a string. Embeddings must be
+    // generated manually BEFORE insertion.
     //
-    // DIMENSIONI: 1536 per text-embedding-3-small (OpenAI)
-    // DISTANZA: CosineSimilarity per testi
-    // INDICE: Hnsw per ricerca veloce
+    // DIMENSIONS: 1536 for text-embedding-3-small (OpenAI)
+    // DISTANCE: CosineSimilarity for texts
+    // INDEX: Hnsw for fast search
 
     /// <summary>
-    /// Vettore embedding del contenuto.
+    /// Embedding vector of the content.
     /// </summary>
     /// <remarks>
-    /// Deve essere popolato manualmente usando un embedding generator
-    /// prima di inserire il documento nel vector store.
+    /// Must be populated manually using an embedding generator
+    /// before inserting the document into the vector store.
     /// </remarks>
     [VectorStoreVector(1536, DistanceFunction = DistanceFunction.CosineSimilarity, IndexKind = IndexKind.Hnsw)]
     public ReadOnlyMemory<float> Embedding { get; set; }
 
     // ========================================================================
-    // HELPER PER EMBEDDING
+    // EMBEDDING HELPER
     // ========================================================================
 
     /// <summary>
-    /// Genera il testo da usare per creare l'embedding.
+    /// Generates the text to use for creating the embedding.
     /// </summary>
     /// <remarks>
-    /// Combina titolo, categoria e contenuto per un embedding più ricco.
-    /// Usa questo metodo per generare l'embedding prima dell'inserimento.
+    /// Combines title, category and content for a richer embedding.
+    /// Use this method to generate the embedding before insertion.
     /// </remarks>
     public string GetTextForEmbedding() => $"Title: {Title}\nCategory: {Category}\nContent: {Content}";
 }

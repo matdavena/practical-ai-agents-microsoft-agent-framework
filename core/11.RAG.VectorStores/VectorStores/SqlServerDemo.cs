@@ -1,27 +1,27 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // FILE: VectorStores/SqlServerDemo.cs
 // ============================================================================
 //
-// DEMO RAG CON SQL SERVER
+// RAG DEMO WITH SQL SERVER
 //
-// SQL Server 2022 introduce supporto nativo per i vettori:
-// - Tipo di dato VECTOR per memorizzare embedding
-// - Funzione VECTOR_DISTANCE per calcolare similarità
-// - Supporto per cosine, euclidean e dot product
+// SQL Server 2022 introduces native support for vectors:
+// - VECTOR data type for storing embeddings
+// - VECTOR_DISTANCE function for calculating similarity
+// - Support for cosine, euclidean and dot product
 //
-// VANTAGGI di usare SQL Server come vector store:
-// - Nessun database aggiuntivo da gestire
-// - Transazioni ACID su dati + vettori
-// - Join con tabelle relazionali esistenti
-// - Familiarità per chi già usa SQL Server
+// ADVANTAGES of using SQL Server as vector store:
+// - No additional database to manage
+// - ACID transactions on data + vectors
+// - Join with existing relational tables
+// - Familiarity for those already using SQL Server
 //
-// PREREQUISITI:
-// 1. Docker Desktop in esecuzione
-// 2. Container SQL Server avviato: docker compose up -d sqlserver
+// PREREQUISITES:
+// 1. Docker Desktop running
+// 2. SQL Server container started: docker compose up -d sqlserver
 //
-// CONNESSIONE:
-// - Server: localhost,1434 (porta 1434 per evitare conflitti)
+// CONNECTION:
+// - Server: localhost,1434 (port 1434 to avoid conflicts)
 // - User: sa
 // - Password: VectorStore123!
 //
@@ -38,12 +38,12 @@ using OpenAI;
 namespace _11.RAG.VectorStores.VectorStores;
 
 /// <summary>
-/// Dimostra l'utilizzo di SQL Server come vector store per RAG.
+/// Demonstrates using SQL Server as a vector store for RAG.
 /// </summary>
 public static class SqlServerDemo
 {
-    // Configurazione
-    // NOTA: Porta 1434 per evitare conflitti con SQL Server locale (1433)
+    // Configuration
+    // NOTE: Port 1434 to avoid conflicts with local SQL Server (1433)
     private const string MasterConnectionString =
         "Server=localhost,1434;Database=master;User Id=sa;Password=VectorStore123!;TrustServerCertificate=True;";
 
@@ -58,94 +58,94 @@ public static class SqlServerDemo
 
     public static async Task RunAsync()
     {
-        ConsoleHelper.WriteTitle("RAG con SQL Server Vector Store");
+        ConsoleHelper.WriteTitle("RAG with SQL Server Vector Store");
 
         // ====================================================================
-        // AVVISO IMPORTANTE
+        // IMPORTANT NOTICE
         // ====================================================================
         Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║  ATTENZIONE: SQL Server VECTOR richiede SQL Server 2025!     ║");
+        Console.WriteLine("║  WARNING: SQL Server VECTOR requires SQL Server 2025!       ║");
         Console.WriteLine("╠══════════════════════════════════════════════════════════════╣");
-        Console.WriteLine("║  Il tipo VECTOR nativo è disponibile SOLO in SQL Server 2025 ║");
-        Console.WriteLine("║  che è attualmente in preview privata (non pubblicamente     ║");
-        Console.WriteLine("║  disponibile su Docker Hub).                                 ║");
+        Console.WriteLine("║  The native VECTOR type is available ONLY in SQL Server 2025 ║");
+        Console.WriteLine("║  which is currently in private preview (not publicly         ║");
+        Console.WriteLine("║  available on Docker Hub).                                   ║");
         Console.WriteLine("║                                                              ║");
-        Console.WriteLine("║  SQL Server 2022 NON supporta il tipo VECTOR.                ║");
+        Console.WriteLine("║  SQL Server 2022 does NOT support the VECTOR type.          ║");
         Console.WriteLine("║                                                              ║");
-        Console.WriteLine("║  Per testare vector store con database relazionali,          ║");
-        Console.WriteLine("║  considera PostgreSQL con pgvector come alternativa.         ║");
+        Console.WriteLine("║  To test vector store with relational databases,            ║");
+        Console.WriteLine("║  consider PostgreSQL with pgvector as an alternative.       ║");
         Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
         Console.WriteLine();
-        Console.Write("Vuoi continuare comunque? (s/n): ");
+        Console.Write("Do you want to continue anyway? (y/n): ");
         var continueAnyway = Console.ReadLine();
-        if (!continueAnyway?.Equals("s", StringComparison.OrdinalIgnoreCase) == true)
+        if (!continueAnyway?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
         {
             return;
         }
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 1: VERIFICA CONNESSIONE A SQL SERVER
+        // STEP 1: VERIFY CONNECTION TO SQL SERVER
         // ====================================================================
-        ConsoleHelper.WriteSeparator("1. Connessione a SQL Server");
+        ConsoleHelper.WriteSeparator("1. Connection to SQL Server");
 
-        Console.WriteLine("Connessione a SQL Server (Docker, porta 1434)...");
+        Console.WriteLine("Connecting to SQL Server (Docker, port 1434)...");
         Console.WriteLine();
 
         try
         {
-            // Prima ci connettiamo a master per verificare SQL Server e creare il database
+            // First connect to master to verify SQL Server and create the database
             await using var masterConn = new SqlConnection(MasterConnectionString);
             await masterConn.OpenAsync();
 
-            // Verifica versione
+            // Verify version
             await using var versionCmd = masterConn.CreateCommand();
             versionCmd.CommandText = "SELECT @@VERSION";
             var version = await versionCmd.ExecuteScalarAsync();
 
-            Console.WriteLine("SQL Server raggiungibile!");
-            Console.WriteLine($"Versione: {TruncateVersion(version?.ToString() ?? "")}");
+            Console.WriteLine("SQL Server reachable!");
+            Console.WriteLine($"Version: {TruncateVersion(version?.ToString() ?? "")}");
             Console.WriteLine();
 
-            // Verifica che sia SQL Server 2022 o superiore
+            // Verify it's SQL Server 2022 or higher
             var versionStr = version?.ToString() ?? "";
             if (!versionStr.Contains("2022") && !versionStr.Contains("2025"))
             {
-                Console.WriteLine("ATTENZIONE: Il supporto vettoriale nativo richiede SQL Server 2022+");
-                Console.WriteLine("Il connector potrebbe usare un'implementazione alternativa.");
+                Console.WriteLine("WARNING: Native vector support requires SQL Server 2022+");
+                Console.WriteLine("The connector might use an alternative implementation.");
                 Console.WriteLine();
             }
 
-            // Crea il database se non esiste
-            Console.WriteLine($"Verifica database '{DatabaseName}'...");
+            // Create database if it doesn't exist
+            Console.WriteLine($"Verifying database '{DatabaseName}'...");
             await using var createDbCmd = masterConn.CreateCommand();
             createDbCmd.CommandText = $"""
                 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '{DatabaseName}')
                 BEGIN
                     CREATE DATABASE [{DatabaseName}]
-                    PRINT 'Database creato'
+                    PRINT 'Database created'
                 END
                 ELSE
                 BEGIN
-                    PRINT 'Database esistente'
+                    PRINT 'Database exists'
                 END
                 """;
             await createDbCmd.ExecuteNonQueryAsync();
-            Console.WriteLine($"Database '{DatabaseName}' pronto!");
+            Console.WriteLine($"Database '{DatabaseName}' ready!");
             Console.WriteLine();
         }
         catch (SqlException ex)
         {
-            Console.WriteLine($"ERRORE: Impossibile connettersi a SQL Server!");
-            Console.WriteLine($"Dettaglio: {ex.Message}");
+            Console.WriteLine($"ERROR: Unable to connect to SQL Server!");
+            Console.WriteLine($"Detail: {ex.Message}");
             Console.WriteLine();
-            Console.WriteLine("Assicurati che:");
-            Console.WriteLine("1. Docker Desktop sia in esecuzione");
-            Console.WriteLine("2. Il container SQL Server sia avviato:");
+            Console.WriteLine("Make sure that:");
+            Console.WriteLine("1. Docker Desktop is running");
+            Console.WriteLine("2. The SQL Server container is started:");
             Console.WriteLine("   docker compose up -d sqlserver");
-            Console.WriteLine("3. Attendi 30-60 secondi dopo l'avvio (SQL Server impiega tempo)");
+            Console.WriteLine("3. Wait 30-60 seconds after startup (SQL Server takes time)");
             Console.WriteLine();
-            Console.WriteLine("Premi un tasto per tornare al menu...");
+            Console.WriteLine("Press any key to return to menu...");
             Console.ReadKey();
             return;
         }
@@ -163,88 +163,88 @@ public static class SqlServerDemo
             .AsIEmbeddingGenerator();
 
         Console.WriteLine($"Embedding model: {EmbeddingModel}");
-        Console.WriteLine("Embedding generator pronto!");
+        Console.WriteLine("Embedding generator ready!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 3: CREAZIONE VECTOR STORE E COLLECTION
+        // STEP 3: CREATE VECTOR STORE AND COLLECTION
         // ====================================================================
-        ConsoleHelper.WriteSeparator("3. Creazione Vector Store");
+        ConsoleHelper.WriteSeparator("3. Creating Vector Store");
 
-        // SqlServerVectorStore implementa IVectorStore
-        // Usa una tabella SQL per memorizzare i record con i vettori
+        // SqlServerVectorStore implements IVectorStore
+        // Uses a SQL table to store records with vectors
         var vectorStore = new SqlServerVectorStore(ConnectionString);
 
-        // Otteniamo la collezione (sarà una tabella in SQL Server)
-        // Usiamo DocumentChunkSqlServer che ha indice Flat (SQL Server non supporta HNSW)
+        // Get the collection (will be a table in SQL Server)
+        // We use DocumentChunkSqlServer which has Flat index (SQL Server doesn't support HNSW)
         var collection = vectorStore.GetCollection<Guid, DocumentChunkSqlServer>(CollectionName);
 
-        // Crea la tabella se non esiste, con le colonne appropriate:
-        // - Id (chiave primaria)
-        // - Title, Category, Content (campi dati)
-        // - ChunkIndex (intero)
-        // - EmbeddingText_Embedding (tipo VECTOR o fallback)
+        // Create the table if it doesn't exist, with appropriate columns:
+        // - Id (primary key)
+        // - Title, Category, Content (data fields)
+        // - ChunkIndex (integer)
+        // - EmbeddingText_Embedding (VECTOR type or fallback)
         await collection.EnsureCollectionExistsAsync();
 
-        Console.WriteLine($"Collezione '{CollectionName}' pronta!");
-        Console.WriteLine("(Corrisponde a una tabella SQL Server)");
+        Console.WriteLine($"Collection '{CollectionName}' ready!");
+        Console.WriteLine("(Corresponds to a SQL Server table)");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 4: INDICIZZAZIONE DOCUMENTI
+        // STEP 4: INDEX DOCUMENTS
         // ====================================================================
-        ConsoleHelper.WriteSeparator("4. Indicizzazione Documenti");
+        ConsoleHelper.WriteSeparator("4. Indexing Documents");
 
         var chunks = SampleDocuments.GetChunksForSqlServer().ToList();
-        Console.WriteLine($"Documenti da indicizzare: {SampleDocuments.Documents.Length}");
-        Console.WriteLine($"Chunk totali: {chunks.Count}");
+        Console.WriteLine($"Documents to index: {SampleDocuments.Documents.Length}");
+        Console.WriteLine($"Total chunks: {chunks.Count}");
         Console.WriteLine();
 
-        // IMPORTANTE: Per SQL Server (e Qdrant) dobbiamo generare gli embedding
-        // manualmente PRIMA dell'inserimento.
+        // IMPORTANT: For SQL Server (and Qdrant) we must generate embeddings
+        // manually BEFORE insertion.
 
-        Console.WriteLine("Generazione embedding...");
+        Console.WriteLine("Generating embeddings...");
 
-        // Generiamo gli embedding per tutti i chunk in batch
+        // Generate embeddings for all chunks in batch
         var textsForEmbedding = chunks.Select(c => c.GetTextForEmbedding()).ToList();
         var embeddings = await embeddingGenerator.GenerateAsync(textsForEmbedding);
 
-        // Associamo ogni embedding al rispettivo chunk
+        // Associate each embedding with its respective chunk
         for (int i = 0; i < chunks.Count; i++)
         {
             chunks[i].Embedding = embeddings[i].Vector;
         }
 
-        Console.WriteLine($"   Generati {embeddings.Count} embedding!");
+        Console.WriteLine($"   Generated {embeddings.Count} embeddings!");
         Console.WriteLine();
 
-        Console.WriteLine("Inserimento nel vector store...");
+        Console.WriteLine("Inserting into vector store...");
 
         var count = 0;
         foreach (var chunk in chunks)
         {
             await collection.UpsertAsync(chunk);
             count++;
-            Console.Write($"\r   Chunk inseriti: {count}/{chunks.Count}");
+            Console.Write($"\r   Chunks inserted: {count}/{chunks.Count}");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Indicizzazione completata!");
+        Console.WriteLine("Indexing completed!");
         Console.WriteLine();
 
-        // Mostra la struttura della tabella creata
+        // Show the structure of the created table
         await ShowTableStructureAsync();
 
         // ====================================================================
-        // STEP 5: RICERCA SEMANTICA
+        // STEP 5: SEMANTIC SEARCH
         // ====================================================================
-        ConsoleHelper.WriteSeparator("5. Test Ricerca Semantica");
+        ConsoleHelper.WriteSeparator("5. Semantic Search Test");
 
         var testQueries = new[]
         {
-            "Come funziona la programmazione asincrona?",
-            "Quali sono i tipi di indici in SQL Server?",
-            "Come si implementa un sistema RAG?"
+            "How does asynchronous programming work?",
+            "What are the types of indexes in SQL Server?",
+            "How do you implement a RAG system?"
         };
 
         foreach (var query in testQueries)
@@ -259,12 +259,12 @@ public static class SqlServerDemo
                 IncludeVectors = false
             };
 
-            // SearchAsync esegue una query che calcola la distanza
-            // tra il vettore della query e i vettori nel database
-            // SearchAsync(vector, topK, options) - topK è un parametro separato
+            // SearchAsync executes a query that calculates the distance
+            // between the query vector and the vectors in the database
+            // SearchAsync(vector, topK, options) - topK is a separate parameter
             var searchResults = collection.SearchAsync(queryEmbedding.Vector, 3, searchOptions);
 
-            Console.WriteLine("Risultati:");
+            Console.WriteLine("Results:");
             await foreach (var result in searchResults)
             {
                 Console.WriteLine($"   [{result.Score:F4}] {result.Record.Title} (chunk {result.Record.ChunkIndex})");
@@ -275,20 +275,20 @@ public static class SqlServerDemo
         }
 
         // ====================================================================
-        // STEP 6: RAG COMPLETO CON LLM
+        // STEP 6: COMPLETE RAG WITH LLM
         // ====================================================================
-        ConsoleHelper.WriteSeparator("6. RAG Completo con LLM");
+        ConsoleHelper.WriteSeparator("6. Complete RAG with LLM");
 
         var chatClient = openAiClient.GetChatClient(ChatModel).AsIChatClient();
 
-        Console.WriteLine("Ora puoi fare domande sui documenti indicizzati.");
-        Console.WriteLine("I chunk rilevanti verranno recuperati da SQL Server.");
-        Console.WriteLine("Scrivi 'exit' per tornare al menu.");
+        Console.WriteLine("You can now ask questions about the indexed documents.");
+        Console.WriteLine("Relevant chunks will be retrieved from SQL Server.");
+        Console.WriteLine("Type 'exit' to return to menu.");
         Console.WriteLine();
 
         while (true)
         {
-            Console.Write("Domanda: ");
+            Console.Write("Question: ");
             var question = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(question))
@@ -309,7 +309,7 @@ public static class SqlServerDemo
             var relevantChunks = collection.SearchAsync(questionEmbedding.Vector, 3, searchOptions);
 
             var context = new List<string>();
-            Console.WriteLine("Chunk recuperati da SQL Server:");
+            Console.WriteLine("Chunks retrieved from SQL Server:");
             await foreach (var result in relevantChunks)
             {
                 context.Add(result.Record.Content);
@@ -318,18 +318,18 @@ public static class SqlServerDemo
             Console.WriteLine();
 
             var ragPrompt = $"""
-                Usa SOLO le seguenti informazioni per rispondere alla domanda.
-                Se le informazioni non sono sufficienti, dillo chiaramente.
+                Use ONLY the following information to answer the question.
+                If the information is not sufficient, say so clearly.
 
-                CONTESTO:
+                CONTEXT:
                 {string.Join("\n\n---\n\n", context)}
 
-                DOMANDA: {question}
+                QUESTION: {question}
 
-                RISPOSTA:
+                ANSWER:
                 """;
 
-            Console.Write("Risposta: ");
+            Console.Write("Answer: ");
             await foreach (var chunk in chatClient.GetStreamingResponseAsync(ragPrompt))
             {
                 Console.Write(chunk);
@@ -339,35 +339,35 @@ public static class SqlServerDemo
         }
 
         // ====================================================================
-        // STEP 7: PULIZIA (OPZIONALE)
+        // STEP 7: CLEANUP (OPTIONAL)
         // ====================================================================
-        ConsoleHelper.WriteSeparator("7. Pulizia");
+        ConsoleHelper.WriteSeparator("7. Cleanup");
 
-        Console.Write("Vuoi eliminare la tabella? (s/n): ");
+        Console.Write("Do you want to delete the table? (y/n): ");
         var delete = Console.ReadLine();
 
-        if (delete?.Equals("s", StringComparison.OrdinalIgnoreCase) == true)
+        if (delete?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
         {
             await collection.EnsureCollectionDeletedAsync();
-            Console.WriteLine($"Tabella '{CollectionName}' eliminata!");
+            Console.WriteLine($"Table '{CollectionName}' deleted!");
         }
         else
         {
-            Console.WriteLine("Tabella mantenuta per usi futuri.");
-            Console.WriteLine("Puoi esaminarla con SSMS o Azure Data Studio.");
+            Console.WriteLine("Table kept for future use.");
+            Console.WriteLine("You can examine it with SSMS or Azure Data Studio.");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Premi un tasto per tornare al menu...");
+        Console.WriteLine("Press any key to return to menu...");
         Console.ReadKey();
     }
 
     /// <summary>
-    /// Mostra la struttura della tabella creata dal vector store.
+    /// Shows the structure of the table created by the vector store.
     /// </summary>
     private static async Task ShowTableStructureAsync()
     {
-        Console.WriteLine("Struttura tabella SQL Server:");
+        Console.WriteLine("SQL Server table structure:");
         Console.WriteLine();
 
         try
@@ -396,7 +396,7 @@ public static class SqlServerDemo
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"   Impossibile leggere struttura: {ex.Message}");
+            Console.WriteLine($"   Unable to read structure: {ex.Message}");
         }
 
         Console.WriteLine();
@@ -415,7 +415,7 @@ public static class SqlServerDemo
 
     private static string TruncateVersion(string version)
     {
-        // Prendi solo la prima riga della versione
+        // Take only the first line of the version
         var firstLine = version.Split('\n')[0].Trim();
         return firstLine.Length > 80 ? firstLine[..80] + "..." : firstLine;
     }

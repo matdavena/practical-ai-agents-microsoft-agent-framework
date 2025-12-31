@@ -2,12 +2,12 @@
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║                              CONSOLE HELPER                                   ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  Helper per formattare l'output nella console in modo leggibile.             ║
+ * ║  Helper for formatting console output in a readable way.                     ║
  * ║                                                                               ║
- * ║  Utilizza Spectre.Console per:                                               ║
- * ║  - Colorare i messaggi in base al ruolo (User, Agent, System)                ║
- * ║  - Creare separatori e titoli visivamente distinguibili                      ║
- * ║  - Formattare il testo in modo chiaro                                        ║
+ * ║  Uses Spectre.Console for:                                                   ║
+ * ║  - Coloring messages based on role (User, Agent, System)                     ║
+ * ║  - Creating visually distinguishable separators and titles                   ║
+ * ║  - Formatting text clearly                                                   ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -16,21 +16,21 @@ using Spectre.Console;
 namespace Common;
 
 /// <summary>
-/// Helper statico per la formattazione dell'output console.
-/// Fornisce metodi per stampare messaggi colorati e formattati.
+/// Static helper for console output formatting.
+/// Provides methods for printing colored and formatted messages.
 /// </summary>
 public static class ConsoleHelper
 {
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * TITOLI E SEPARATORI
+     * TITLES AND SEPARATORS
      * ═══════════════════════════════════════════════════════════════════════════
-     * Metodi per creare elementi visuali che separano le sezioni dell'output.
+     * Methods for creating visual elements that separate output sections.
      */
 
     /// <summary>
-    /// Stampa un titolo grande con cornice.
-    /// Usato all'avvio dell'applicazione.
+    /// Prints a large title with a frame.
+    /// Used at application startup.
     /// </summary>
     public static void WriteTitle(string title)
     {
@@ -41,7 +41,7 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un sottotitolo con descrizione.
+    /// Prints a subtitle with description.
     /// </summary>
     public static void WriteSubtitle(string subtitle)
     {
@@ -50,8 +50,8 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un separatore orizzontale.
-    /// Utile per dividere le conversazioni.
+    /// Prints a horizontal separator.
+    /// Useful for dividing conversations.
     /// </summary>
     public static void WriteSeparator()
     {
@@ -59,7 +59,7 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un separatore con titolo.
+    /// Prints a separator with a title.
     /// </summary>
     public static void WriteSeparator(string title)
     {
@@ -68,15 +68,15 @@ public static class ConsoleHelper
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * MESSAGGI DI CONVERSAZIONE
+     * CONVERSATION MESSAGES
      * ═══════════════════════════════════════════════════════════════════════════
-     * Metodi per stampare i messaggi della conversazione tra utente e agente.
-     * Ogni ruolo ha un colore diverso per facilitare la lettura.
+     * Methods for printing conversation messages between user and agent.
+     * Each role has a different color for easier reading.
      */
 
     /// <summary>
-    /// Stampa un messaggio dell'utente.
-    /// Colore: Verde (indica input)
+    /// Prints a user message.
+    /// Color: Green (indicates input)
     /// </summary>
     public static void WriteUserMessage(string message)
     {
@@ -84,8 +84,8 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un messaggio dell'agente.
-    /// Colore: Blu (indica risposta AI)
+    /// Prints an agent message.
+    /// Color: Blue (indicates AI response)
     /// </summary>
     public static void WriteAgentMessage(string message)
     {
@@ -93,8 +93,8 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa l'intestazione dell'agente (senza messaggio).
-    /// Usato prima dello streaming.
+    /// Prints the agent header (without message).
+    /// Used before streaming.
     /// </summary>
     public static void WriteAgentHeader()
     {
@@ -102,17 +102,17 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un chunk di testo durante lo streaming.
-    /// Non aggiunge newline per permettere la concatenazione.
+    /// Prints a text chunk during streaming.
+    /// Does not add newline to allow concatenation.
     /// </summary>
     public static void WriteStreamChunk(string chunk)
     {
-        // Escape del markup per evitare problemi con caratteri speciali
+        // Escape markup to avoid issues with special characters
         Console.Write(chunk);
     }
 
     /// <summary>
-    /// Termina una riga di streaming.
+    /// Ends a streaming line.
     /// </summary>
     public static void EndStreamLine()
     {
@@ -121,8 +121,8 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un messaggio di sistema.
-    /// Colore: Giallo (indica informazioni di sistema)
+    /// Prints a system message.
+    /// Color: Yellow (indicates system information)
     /// </summary>
     public static void WriteSystemMessage(string message)
     {
@@ -131,13 +131,13 @@ public static class ConsoleHelper
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * MESSAGGI DI STATO
+     * STATUS MESSAGES
      * ═══════════════════════════════════════════════════════════════════════════
-     * Metodi per indicare successo, errore, warning, ecc.
+     * Methods for indicating success, error, warning, etc.
      */
 
     /// <summary>
-    /// Stampa un messaggio di successo.
+    /// Prints a success message.
     /// </summary>
     public static void WriteSuccess(string message)
     {
@@ -145,7 +145,7 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un messaggio di errore.
+    /// Prints an error message.
     /// </summary>
     public static void WriteError(string message)
     {
@@ -153,7 +153,7 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un messaggio di warning.
+    /// Prints a warning message.
     /// </summary>
     public static void WriteWarning(string message)
     {
@@ -161,7 +161,7 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa un messaggio informativo.
+    /// Prints an informational message.
     /// </summary>
     public static void WriteInfo(string message)
     {
@@ -170,21 +170,21 @@ public static class ConsoleHelper
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * INPUT UTENTE
+     * USER INPUT
      * ═══════════════════════════════════════════════════════════════════════════
-     * Metodi per richiedere input all'utente.
+     * Methods for requesting user input.
      */
 
     /// <summary>
-    /// Richiede input testuale all'utente.
+    /// Requests text input from the user.
     /// </summary>
-    public static string AskInput(string prompt = "Tu")
+    public static string AskInput(string prompt = "You")
     {
         return AnsiConsole.Ask<string>($"[green]{prompt}>[/]");
     }
 
     /// <summary>
-    /// Richiede conferma (sì/no) all'utente.
+    /// Requests confirmation (yes/no) from the user.
     /// </summary>
     public static bool AskConfirmation(string prompt)
     {
@@ -193,14 +193,14 @@ public static class ConsoleHelper
 
     /*
      * ═══════════════════════════════════════════════════════════════════════════
-     * PANNELLI E TABELLE
+     * PANELS AND TABLES
      * ═══════════════════════════════════════════════════════════════════════════
-     * Metodi per visualizzare informazioni strutturate.
+     * Methods for displaying structured information.
      */
 
     /// <summary>
-    /// Stampa un pannello con titolo.
-    /// Utile per mostrare informazioni in un box.
+    /// Prints a panel with a title.
+    /// Useful for showing information in a box.
     /// </summary>
     public static void WritePanel(string title, string content)
     {
@@ -214,15 +214,15 @@ public static class ConsoleHelper
     }
 
     /// <summary>
-    /// Stampa informazioni di configurazione in formato chiave-valore.
+    /// Prints configuration information in key-value format.
     /// </summary>
     public static void WriteConfiguration(Dictionary<string, string> config)
     {
         var table = new Table()
             .Border(TableBorder.Rounded)
             .BorderColor(Color.Grey)
-            .AddColumn(new TableColumn("[bold]Parametro[/]").LeftAligned())
-            .AddColumn(new TableColumn("[bold]Valore[/]").LeftAligned());
+            .AddColumn(new TableColumn("[bold]Parameter[/]").LeftAligned())
+            .AddColumn(new TableColumn("[bold]Value[/]").LeftAligned());
 
         foreach (var (key, value) in config)
         {

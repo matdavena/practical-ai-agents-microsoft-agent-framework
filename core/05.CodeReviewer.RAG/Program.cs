@@ -3,40 +3,40 @@
 // LEARNING PATH: MICROSOFT AGENT FRAMEWORK
 // ============================================================================
 //
-// OBIETTIVO DI QUESTO PROGETTO:
-// Imparare a implementare RAG (Retrieval-Augmented Generation) per dare
-// all'agente accesso a una knowledge base di documenti esterni.
+// OBJECTIVE OF THIS PROJECT:
+// Learn how to implement RAG (Retrieval-Augmented Generation) to give
+// the agent access to a knowledge base of external documents.
 //
 // SCENARIO:
-// Un Code Reviewer AI che conosce le best practices di programmazione
-// caricate da una knowledge base di documenti markdown.
+// An AI Code Reviewer that knows programming best practices
+// loaded from a knowledge base of markdown documents.
 //
-// CONCETTI CHIAVE:
+// KEY CONCEPTS:
 //
 // 1. RAG (Retrieval-Augmented Generation):
 //    ┌─────────────────────────────────────────────────────────────────┐
-//    │  PROBLEMA: L'LLM ha solo conoscenza dal training               │
-//    │  SOLUZIONE: Recupera informazioni rilevanti prima di rispondere │
+//    │  PROBLEM: LLM only has knowledge from training                 │
+//    │  SOLUTION: Retrieves relevant information before responding    │
 //    └─────────────────────────────────────────────────────────────────┘
 //
-// 2. Pipeline RAG:
+// 2. RAG Pipeline:
 //    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌───────────┐
-//    │  Query   │ ─► │ Retrieval│ ─► │ Augment  │ ─► │ Generate  │
-//    │  utente  │    │ (cerca)  │    │ (arricch)│    │ (rispondi)│
+//    │  User    │ ─► │ Retrieval│ ─► │ Augment  │ ─► │ Generate  │
+//    │  query   │    │ (search) │    │ (enrich) │    │ (respond) │
 //    └──────────┘    └──────────┘    └──────────┘    └───────────┘
 //
-// 3. Componenti implementati:
-//    - TextSearchDocument: modello per chunk di documenti
-//    - TextSearchStore: caricamento, chunking, embedding, ricerca
-//    - KnowledgeBaseProvider: AIContextProvider per integrazione agente
+// 3. Implemented components:
+//    - TextSearchDocument: model for document chunks
+//    - TextSearchStore: loading, chunking, embedding, search
+//    - KnowledgeBaseProvider: AIContextProvider for agent integration
 //
-// VANTAGGI RAG:
-// ✅ Knowledge aggiornabile senza re-training
-// ✅ Risposte basate su fonti specifiche e citabili
-// ✅ Costi inferiori rispetto al fine-tuning
-// ✅ Trasparenza: sai da dove viene l'informazione
+// RAG ADVANTAGES:
+// ✅ Updatable knowledge without re-training
+// ✅ Responses based on specific and citable sources
+// ✅ Lower costs compared to fine-tuning
+// ✅ Transparency: you know where the information comes from
 //
-// ESEGUI CON: dotnet run --project core/05.CodeReviewer.RAG
+// RUN WITH: dotnet run --project core/05.CodeReviewer.RAG
 // ============================================================================
 
 using System.Text;
@@ -58,19 +58,19 @@ public static class Program
     // ========================================================================
 
     /// <summary>
-    /// Modello per il chat (gpt-4o-mini è economico e capace).
+    /// Chat model (gpt-4o-mini is economical and capable).
     /// </summary>
     private const string ChatModel = "gpt-4o-mini";
 
     /// <summary>
-    /// Modello per gli embeddings.
-    /// text-embedding-3-small: 1536 dimensioni, ottimo rapporto qualità/prezzo.
+    /// Model for embeddings.
+    /// text-embedding-3-small: 1536 dimensions, excellent quality/price ratio.
     /// </summary>
     private const string EmbeddingModel = "text-embedding-3-small";
 
     /// <summary>
-    /// Percorso della knowledge base relativo all'eseguibile.
-    /// I file vengono copiati durante la build (vedi csproj).
+    /// Knowledge base path relative to the executable.
+    /// Files are copied during build (see csproj).
     /// </summary>
     private const string KnowledgeBasePath = "KnowledgeBase";
 
@@ -80,7 +80,7 @@ public static class Program
 
     public static async Task Main()
     {
-        // Importante per visualizzare correttamente emoji e caratteri speciali
+        // Important to correctly display emojis and special characters
         Console.OutputEncoding = Encoding.UTF8;
 
         ConsoleHelper.WriteTitle("05. CodeReviewer RAG");
@@ -94,82 +94,82 @@ public static class Program
         var apiKey = ConfigurationHelper.GetOpenAiApiKey();
         var openAiClient = new OpenAIClient(new ApiKeyCredential(apiKey));
 
-        Console.WriteLine($"✅ Client OpenAI configurato");
+        Console.WriteLine($"✅ OpenAI client configured");
         Console.WriteLine($"   Chat Model: {ChatModel}");
         Console.WriteLine($"   Embedding Model: {EmbeddingModel}");
 
         // ====================================================================
-        // STEP 2: SETUP VECTOR STORE E EMBEDDING GENERATOR
+        // STEP 2: SETUP VECTOR STORE AND EMBEDDING GENERATOR
         // ====================================================================
         ConsoleHelper.WriteSeparator("Step 2: Setup Vector Store");
 
-        // Crea il generatore di embeddings usando l'extension method AsIEmbeddingGenerator
-        // Questo converte EmbeddingClient in IEmbeddingGenerator<string, Embedding<float>>
+        // Create the embedding generator using the AsIEmbeddingGenerator extension method
+        // This converts EmbeddingClient to IEmbeddingGenerator<string, Embedding<float>>
         var embeddingGenerator = openAiClient
             .GetEmbeddingClient(EmbeddingModel)
             .AsIEmbeddingGenerator();
 
-        Console.WriteLine("✅ Embedding generator configurato");
+        Console.WriteLine("✅ Embedding generator configured");
 
-        // Crea il vector store in memoria
-        // InMemoryVectorStore è ottimo per demo e testing
-        // In produzione useresti: Azure AI Search, Qdrant, Pinecone, etc.
+        // Create the in-memory vector store
+        // InMemoryVectorStore is great for demos and testing
+        // In production you would use: Azure AI Search, Qdrant, Pinecone, etc.
         var vectorStore = new InMemoryVectorStore(new InMemoryVectorStoreOptions
         {
             EmbeddingGenerator = embeddingGenerator
         });
 
-        Console.WriteLine("✅ Vector store in memoria creato");
+        Console.WriteLine("✅ In-memory vector store created");
 
         // ====================================================================
-        // STEP 3: CARICA LA KNOWLEDGE BASE
+        // STEP 3: LOAD THE KNOWLEDGE BASE
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Step 3: Caricamento Knowledge Base");
+        ConsoleHelper.WriteSeparator("Step 3: Loading Knowledge Base");
 
-        // Verifica che la cartella esista
+        // Verify that the folder exists
         if (!Directory.Exists(KnowledgeBasePath))
         {
-            ConsoleHelper.WriteError($"Cartella knowledge base non trovata: {KnowledgeBasePath}");
-            ConsoleHelper.WriteError("Assicurati che i file .md siano nella cartella KnowledgeBase/");
+            ConsoleHelper.WriteError($"Knowledge base folder not found: {KnowledgeBasePath}");
+            ConsoleHelper.WriteError("Make sure the .md files are in the KnowledgeBase/ folder");
             return;
         }
 
-        // Crea lo store per la ricerca
-        // Il vectorStore ha già l'EmbeddingGenerator configurato
+        // Create the store for searching
+        // The vectorStore already has the EmbeddingGenerator configured
         var searchStore = new TextSearchStore(vectorStore);
 
-        // Carica tutti i documenti markdown
-        // Questo processo:
-        // 1. Legge ogni file .md
-        // 2. Divide in chunk (pezzi gestibili)
-        // 3. Genera embedding per ogni chunk (automaticamente!)
-        // 4. Memorizza nel vector store
+        // Load all markdown documents
+        // This process:
+        // 1. Reads each .md file
+        // 2. Splits into chunks (manageable pieces)
+        // 3. Generates embeddings for each chunk (automatically!)
+        // 4. Stores in the vector store
         var totalChunks = await searchStore.LoadKnowledgeBaseAsync(KnowledgeBasePath);
 
         if (totalChunks == 0)
         {
-            ConsoleHelper.WriteError("Nessun chunk caricato. Controlla i file nella knowledge base.");
+            ConsoleHelper.WriteError("No chunks loaded. Check the files in the knowledge base.");
             return;
         }
 
         // ====================================================================
-        // STEP 4: CREA L'AGENTE CON RAG
+        // STEP 4: CREATE THE AGENT WITH RAG
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Step 4: Creazione Code Reviewer Agent");
+        ConsoleHelper.WriteSeparator("Step 4: Creating Code Reviewer Agent");
 
-        // Crea il provider RAG
-        // Questo inietta automaticamente il contesto dalla knowledge base
+        // Create the RAG provider
+        // This automatically injects context from the knowledge base
         var knowledgeBaseProvider = new KnowledgeBaseProvider(
             searchStore,
-            topK: 3,      // Recupera i 3 chunk più rilevanti
-            minScore: 0.3f // Score minimo di similarità
+            topK: 3,      // Retrieve the 3 most relevant chunks
+            minScore: 0.3f // Minimum similarity score
         );
 
-        // System prompt per il Code Reviewer
-        // L'agente è istruito a:
-        // 1. Essere un esperto di code review
-        // 2. Usare la knowledge base iniettata
-        // 3. Citare le fonti nelle risposte
+        // System prompt for the Code Reviewer
+        // The agent is instructed to:
+        // 1. Be a code review expert
+        // 2. Use the injected knowledge base
+        // 3. Cite sources in responses
         const string systemPrompt = """
             Sei un Code Reviewer esperto specializzato in C# e .NET.
 
@@ -187,47 +187,47 @@ public static class Program
             "Secondo [Nome Documento], ..." oppure "(fonte: nome-documento.md)"
             """;
 
-        // Crea l'agente con il provider RAG
+        // Create the agent with the RAG provider
         var chatClient = openAiClient.GetChatClient(ChatModel);
         ChatClientAgent agent = chatClient.CreateAIAgent(new ChatClientAgentOptions
         {
             Name = "CodeReviewer",
-            // Il factory crea il provider per ogni thread/conversazione
-            // In questo caso usiamo sempre lo stesso provider
+            // The factory creates the provider for each thread/conversation
+            // In this case we always use the same provider
             AIContextProviderFactory = _ => knowledgeBaseProvider,
-            // Opzioni per il modello
+            // Options for the model
             ChatOptions = new ChatOptions
             {
-                Temperature = 0.7f // Un po' di creatività, ma non troppo
+                Temperature = 0.7f // A bit of creativity, but not too much
             }
         });
 
-        Console.WriteLine("✅ Code Reviewer Agent creato con RAG");
+        Console.WriteLine("✅ Code Reviewer Agent created with RAG");
 
         // ====================================================================
-        // STEP 5: DEMO INTERATTIVA
+        // STEP 5: INTERACTIVE DEMO
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Step 5: Demo Code Review con RAG");
+        ConsoleHelper.WriteSeparator("Step 5: Code Review Demo with RAG");
 
         Console.WriteLine();
-        Console.WriteLine("🎯 Chiedi al Code Reviewer qualsiasi cosa su:");
+        Console.WriteLine("🎯 Ask the Code Reviewer anything about:");
         Console.WriteLine("   - Naming conventions in C#");
-        Console.WriteLine("   - Principi SOLID");
-        Console.WriteLine("   - Gestione delle eccezioni");
+        Console.WriteLine("   - SOLID principles");
+        Console.WriteLine("   - Exception handling");
         Console.WriteLine("   - Async/await best practices");
         Console.WriteLine();
-        Console.WriteLine("L'agente userà la knowledge base per rispondere!");
-        Console.WriteLine("Scrivi 'exit' per uscire.");
+        Console.WriteLine("The agent will use the knowledge base to respond!");
+        Console.WriteLine("Type 'exit' to quit.");
         Console.WriteLine();
 
-        // Crea un thread di conversazione
+        // Create a conversation thread
         AgentThread thread = agent.GetNewThread();
 
-        // Contatore per sapere se è il primo messaggio
-        // (AgentThread non espone Messages direttamente)
+        // Counter to know if it's the first message
+        // (AgentThread doesn't expose Messages directly)
         int messageCount = 0;
 
-        // Loop di conversazione
+        // Conversation loop
         while (true)
         {
             Console.Write("Tu: ");
@@ -238,7 +238,7 @@ public static class Program
 
             if (userInput.Equals("exit", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("👋 Arrivederci!");
+                Console.WriteLine("👋 Goodbye!");
                 break;
             }
 
@@ -246,14 +246,14 @@ public static class Program
 
             try
             {
-                // Per il primo messaggio, includiamo le istruzioni come contesto
+                // For the first message, we include the instructions as context
                 var promptWithContext = messageCount == 0
-                    ? $"[Contesto sistema: {systemPrompt}]\n\n{userInput}"
+                    ? $"[System context: {systemPrompt}]\n\n{userInput}"
                     : userInput;
 
-                // Invoca l'agente con streaming
-                // InvokingAsync del provider viene chiamato automaticamente,
-                // cercando nella knowledge base e iniettando il contesto
+                // Invoke the agent with streaming
+                // The provider's InvokingAsync is called automatically,
+                // searching the knowledge base and injecting the context
                 ConsoleHelper.WriteAgentHeader();
 
                 await foreach (var update in agent.RunStreamingAsync(promptWithContext, thread))
@@ -263,27 +263,27 @@ public static class Program
 
                 ConsoleHelper.EndStreamLine();
 
-                // Incrementa il contatore messaggi
+                // Increment the message counter
                 messageCount++;
             }
             catch (Exception ex)
             {
-                ConsoleHelper.WriteError($"Errore: {ex.Message}");
+                ConsoleHelper.WriteError($"Error: {ex.Message}");
             }
         }
 
         // ====================================================================
-        // RIEPILOGO
+        // SUMMARY
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Riepilogo");
+        ConsoleHelper.WriteSeparator("Summary");
 
-        Console.WriteLine("📚 In questo progetto hai imparato:");
-        Console.WriteLine("   1. Come implementare RAG con Microsoft Agent Framework");
-        Console.WriteLine("   2. Chunking dei documenti per embedding efficiente");
-        Console.WriteLine("   3. Ricerca semantica con vector store");
-        Console.WriteLine("   4. AIContextProvider per iniettare knowledge dinamica");
-        Console.WriteLine("   5. Citazione delle fonti nelle risposte");
+        Console.WriteLine("📚 In this project you learned:");
+        Console.WriteLine("   1. How to implement RAG with Microsoft Agent Framework");
+        Console.WriteLine("   2. Document chunking for efficient embedding");
+        Console.WriteLine("   3. Semantic search with vector store");
+        Console.WriteLine("   4. AIContextProvider to inject dynamic knowledge");
+        Console.WriteLine("   5. Citing sources in responses");
         Console.WriteLine();
-        Console.WriteLine("🔜 Nel prossimo progetto: Task Planner con obiettivi!");
+        Console.WriteLine("🔜 In the next project: Task Planner with goals!");
     }
 }

@@ -2,29 +2,29 @@
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║                  03. DEV ASSISTANT - MEMORY                                  ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  OBIETTIVO: Comprendere i diversi tipi di memoria per un agente AI           ║
+ * ║  OBJECTIVE: Understand the different types of memory for an AI agent         ║
  * ║                                                                              ║
- * ║  TIPI DI MEMORIA:                                                            ║
+ * ║  MEMORY TYPES:                                                               ║
  * ║                                                                              ║
- * ║  1. MEMORIA IMPLICITA (Thread)                                               ║
- * ║     - L'AgentThread mantiene automaticamente la cronologia                   ║
- * ║     - L'agente "ricorda" tutto ciò che è stato detto nella sessione          ║
- * ║     - Persa al riavvio dell'applicazione (a meno di persistenza)             ║
+ * ║  1. IMPLICIT MEMORY (Thread)                                                 ║
+ * ║     - The AgentThread automatically maintains the history                    ║
+ * ║     - The agent "remembers" everything said in the session                   ║
+ * ║     - Lost on application restart (unless persisted)                         ║
  * ║                                                                              ║
- * ║  2. MEMORIA A BREVE TERMINE (Thread Persistence)                             ║
- * ║     - Serializzazione del thread su disco                                    ║
- * ║     - Permette di riprendere conversazioni dopo il riavvio                   ║
- * ║     - Mantiene l'INTERA conversazione                                        ║
+ * ║  2. SHORT-TERM MEMORY (Thread Persistence)                                   ║
+ * ║     - Thread serialization to disk                                           ║
+ * ║     - Allows resuming conversations after restart                            ║
+ * ║     - Maintains the ENTIRE conversation                                      ║
  * ║                                                                              ║
- * ║  3. MEMORIA A LUNGO TERMINE (AIContextProvider)                              ║
- * ║     - Informazioni estratte e persistite tra sessioni                        ║
- * ║     - Non l'intera chat, ma FATTI importanti (preferenze, stato, etc.)       ║
- * ║     - Iniettati nel contesto prima di ogni richiesta                         ║
+ * ║  3. LONG-TERM MEMORY (AIContextProvider)                                     ║
+ * ║     - Information extracted and persisted between sessions                   ║
+ * ║     - Not the entire chat, but important FACTS (preferences, state, etc.)    ║
+ * ║     - Injected into context before each request                              ║
  * ║                                                                              ║
- * ║  4. MEMORIA SEMANTICA (Vector Store) - Preview nel prossimo progetto         ║
- * ║     - Ricerca per similarità semantica                                       ║
- * ║     - Usa embeddings per trovare info rilevanti                              ║
- * ║     - Ideale per grandi quantità di informazioni                             ║
+ * ║  4. SEMANTIC MEMORY (Vector Store) - Preview in next project                 ║
+ * ║     - Semantic similarity search                                             ║
+ * ║     - Uses embeddings to find relevant info                                  ║
+ * ║     - Ideal for large amounts of information                                 ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -35,117 +35,117 @@ using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using OpenAI;
-using OpenAI.Chat;  // Necessario per l'extension method CreateAIAgent con ChatClientAgentOptions
+using OpenAI.Chat;  // Required for the CreateAIAgent extension method with ChatClientAgentOptions
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONFIGURAZIONE INIZIALE
+// INITIAL CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Importante per visualizzare correttamente emoji e caratteri speciali
+// Important for correctly displaying emojis and special characters
 Console.OutputEncoding = Encoding.UTF8;
 
 ConsoleHelper.WriteTitle("03. DevAssistant Memory");
-ConsoleHelper.WriteSubtitle("Esplorazione della memoria dell'agente");
+ConsoleHelper.WriteSubtitle("Exploring agent memory");
 
-// Otteniamo la configurazione
+// Get the configuration
 var apiKey = ConfigurationHelper.GetOpenAiApiKey();
 var model = ConfigurationHelper.GetOpenAiModel();
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * SETUP DELLA MEMORIA PREFERENZE
+ * PREFERENCES MEMORY SETUP
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * UserPreferencesMemory è un AIContextProvider custom che:
- * - Carica preferenze utente salvate da sessioni precedenti
- * - Estrae nuove preferenze dai messaggi dell'utente
- * - Inietta le preferenze nel contesto dell'agente
+ * UserPreferencesMemory is a custom AIContextProvider that:
+ * - Loads user preferences saved from previous sessions
+ * - Extracts new preferences from user messages
+ * - Injects preferences into the agent's context
  */
 
-ConsoleHelper.WriteSeparator("Step 1: Inizializzazione sistema di memoria");
+ConsoleHelper.WriteSeparator("Step 1: Memory system initialization");
 
-// Creiamo la memoria per le preferenze utente
+// Create memory for user preferences
 var preferencesMemory = new UserPreferencesMemory();
 
-// Mostriamo le preferenze caricate (se esistono)
+// Show loaded preferences (if they exist)
 if (!string.IsNullOrEmpty(preferencesMemory.Preferences.Nome))
 {
-    ConsoleHelper.WriteInfo($"Preferenze caricate - Bentornato, {preferencesMemory.Preferences.Nome}!");
+    ConsoleHelper.WriteInfo($"Preferences loaded - Welcome back, {preferencesMemory.Preferences.Nome}!");
 
     Console.WriteLine();
-    Console.WriteLine("Preferenze memorizzate:");
-    Console.WriteLine($"  Nome: {preferencesMemory.Preferences.Nome}");
-    Console.WriteLine($"  Stile: {preferencesMemory.Preferences.StileComunicazione ?? "non specificato"}");
-    Console.WriteLine($"  Progetto: {preferencesMemory.Preferences.ProgettoCorrente ?? "nessuno"}");
+    Console.WriteLine("Stored preferences:");
+    Console.WriteLine($"  Name: {preferencesMemory.Preferences.Nome}");
+    Console.WriteLine($"  Style: {preferencesMemory.Preferences.StileComunicazione ?? "not specified"}");
+    Console.WriteLine($"  Project: {preferencesMemory.Preferences.ProgettoCorrente ?? "none"}");
     if (preferencesMemory.Preferences.ArgomentiInteresse.Count > 0)
     {
-        Console.WriteLine($"  Interessi: {string.Join(", ", preferencesMemory.Preferences.ArgomentiInteresse)}");
+        Console.WriteLine($"  Interests: {string.Join(", ", preferencesMemory.Preferences.ArgomentiInteresse)}");
     }
-    Console.WriteLine($"  Ultimo accesso: {preferencesMemory.Preferences.UltimoAccesso:g}");
+    Console.WriteLine($"  Last access: {preferencesMemory.Preferences.UltimoAccesso:g}");
     Console.WriteLine();
 }
 else
 {
-    ConsoleHelper.WriteInfo("Nessuna preferenza trovata - Prima esecuzione");
+    ConsoleHelper.WriteInfo("No preferences found - First run");
 }
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * CREAZIONE DELL'AGENTE CON MEMORIA
+ * AGENT CREATION WITH MEMORY
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * PUNTO CHIAVE: Come collegare AIContextProvider all'agente
+ * KEY POINT: How to connect AIContextProvider to the agent
  *
- * L'AIContextProvider viene passato tramite ChatClientAgentOptions.
- * Usiamo AIContextProviderFactory per creare il provider per ogni thread.
+ * The AIContextProvider is passed via ChatClientAgentOptions.
+ * We use AIContextProviderFactory to create the provider for each thread.
  */
 
-ConsoleHelper.WriteSeparator("Step 2: Creazione agente con memoria");
+ConsoleHelper.WriteSeparator("Step 2: Agent creation with memory");
 
 /*
- * ISTRUZIONI DELL'AGENTE:
+ * AGENT INSTRUCTIONS:
  *
- * Notiamo che le istruzioni NON includono info sull'utente.
- * Queste verranno iniettate AUTOMATICAMENTE dal UserPreferencesMemory!
+ * Note that the instructions DO NOT include user info.
+ * These will be injected AUTOMATICALLY by UserPreferencesMemory!
  *
- * Il flow è:
- * 1. Utente scrive messaggio
- * 2. Framework chiama preferencesMemory.InvokingAsync()
- * 3. Il contesto viene AGGIUNTO alle istruzioni
- * 4. L'LLM riceve istruzioni + contesto + messaggi
- * 5. Dopo la risposta, framework chiama preferencesMemory.InvokedAsync()
- * 6. Il provider estrae e salva eventuali nuove preferenze
+ * The flow is:
+ * 1. User writes message
+ * 2. Framework calls preferencesMemory.InvokingAsync()
+ * 3. Context is ADDED to the instructions
+ * 4. The LLM receives instructions + context + messages
+ * 5. After the response, framework calls preferencesMemory.InvokedAsync()
+ * 6. The provider extracts and saves any new preferences
  */
 string agentInstructions = """
-    Sei DevAssistant, un assistente per sviluppatori software.
+    You are DevAssistant, an assistant for software developers.
 
-    Il tuo compito è aiutare gli sviluppatori con:
-    - Rispondere a domande su programmazione
-    - Suggerire best practices
-    - Aiutare con debugging
-    - Spiegare concetti tecnici
+    Your task is to help developers with:
+    - Answering questions about programming
+    - Suggesting best practices
+    - Helping with debugging
+    - Explaining technical concepts
 
-    IMPORTANTE SULLA MEMORIA:
-    - Ricorda ciò che l'utente ti dice durante la conversazione
-    - Se l'utente si presenta o condivide preferenze, ricordalo
-    - Usa le informazioni dalle sessioni precedenti (se disponibili nel contesto)
-    - Personalizza le risposte in base a ciò che sai dell'utente
+    IMPORTANT ABOUT MEMORY:
+    - Remember what the user tells you during the conversation
+    - If the user introduces themselves or shares preferences, remember it
+    - Use information from previous sessions (if available in context)
+    - Personalize responses based on what you know about the user
 
-    Sii conciso ma utile. Usa esempi di codice quando appropriato.
+    Be concise but helpful. Use code examples when appropriate.
     """;
 
 /*
- * CREAZIONE DELL'AGENTE CON ChatClientAgentOptions:
+ * AGENT CREATION WITH ChatClientAgentOptions:
  *
- * Usiamo ChatClientAgentOptions per configurazione avanzata:
- * - ChatOptions.Instructions: le istruzioni dell'agente
- * - AIContextProviderFactory: factory per creare AIContextProvider per ogni thread
+ * We use ChatClientAgentOptions for advanced configuration:
+ * - ChatOptions.Instructions: the agent's instructions
+ * - AIContextProviderFactory: factory to create AIContextProvider for each thread
  *
- * NOTA SULLA FACTORY:
- * La factory viene chiamata quando si crea un nuovo thread.
- * Restituisce un'istanza di AIContextProvider per quel thread.
- * Qui usiamo sempre la stessa istanza (preferencesMemory) per condividere
- * le preferenze tra tutti i thread.
+ * NOTE ABOUT THE FACTORY:
+ * The factory is called when creating a new thread.
+ * Returns an instance of AIContextProvider for that thread.
+ * Here we always use the same instance (preferencesMemory) to share
+ * preferences across all threads.
  */
 ChatClientAgent agent = new OpenAIClient(apiKey)
     .GetChatClient(model)
@@ -154,26 +154,26 @@ ChatClientAgent agent = new OpenAIClient(apiKey)
         Name = "DevAssistant",
         ChatOptions = new ChatOptions
         {
-            // Le istruzioni possono essere passate qui
-            // Ma per semplicità le passiamo nel primo messaggio
+            // Instructions can be passed here
+            // But for simplicity we pass them in the first message
         },
-        // Factory che restituisce il nostro AIContextProvider
-        // ctx contiene lo stato serializzato (se il thread è stato deserializzato)
+        // Factory that returns our AIContextProvider
+        // ctx contains the serialized state (if the thread was deserialized)
         AIContextProviderFactory = ctx => preferencesMemory
     });
 
-// Aggiungiamo le istruzioni come system message
-// (il framework supporta anche ChatOptions.Instructions, ma per compatibilità usiamo questo approccio)
+// Add instructions as system message
+// (the framework supports ChatOptions.Instructions as well, but for compatibility we use this approach)
 
-ConsoleHelper.WriteInfo("Agente creato con UserPreferencesMemory collegata");
+ConsoleHelper.WriteInfo("Agent created with UserPreferencesMemory connected");
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * GESTIONE CONVERSAZIONI SALVATE
+ * SAVED CONVERSATIONS MANAGEMENT
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-ConsoleHelper.WriteSeparator("Step 3: Verifica conversazioni salvate");
+ConsoleHelper.WriteSeparator("Step 3: Checking saved conversations");
 
 var savedConversations = ThreadPersistence.ListSavedConversations().ToList();
 AgentThread? existingThread = null;
@@ -182,21 +182,21 @@ string conversationId = $"session_{DateTime.Now:yyyyMMdd_HHmmss}";
 if (savedConversations.Count > 0)
 {
     Console.WriteLine();
-    Console.WriteLine("Conversazioni salvate trovate:");
+    Console.WriteLine("Saved conversations found:");
     for (int i = 0; i < savedConversations.Count; i++)
     {
         var info = ThreadPersistence.GetConversationInfo(savedConversations[i]);
         if (info != null)
         {
             Console.WriteLine($"  [{i + 1}] {info.ConversationId}");
-            Console.WriteLine($"      Ultimo aggiornamento: {info.LastModified:g}");
-            Console.WriteLine($"      Dimensione: {info.FileSizeBytes / 1024.0:F1} KB");
+            Console.WriteLine($"      Last updated: {info.LastModified:g}");
+            Console.WriteLine($"      Size: {info.FileSizeBytes / 1024.0:F1} KB");
         }
     }
-    Console.WriteLine($"  [N] Nuova conversazione");
+    Console.WriteLine($"  [N] New conversation");
     Console.WriteLine();
 
-    Console.Write("Scegli (numero o N): ");
+    Console.Write("Choose (number or N): ");
     var choice = Console.ReadLine()?.Trim().ToUpperInvariant();
 
     if (int.TryParse(choice, out int index) && index > 0 && index <= savedConversations.Count)
@@ -204,129 +204,129 @@ if (savedConversations.Count > 0)
         conversationId = savedConversations[index - 1];
 
         /*
-         * CARICAMENTO THREAD:
+         * THREAD LOADING:
          *
-         * Usiamo agent.DeserializeThread() attraverso ThreadPersistence.
-         * Il thread viene ricreato con:
-         * - Tutti i messaggi precedenti
-         * - Lo stato dell'AIContextProvider (le preferenze)
+         * We use agent.DeserializeThread() through ThreadPersistence.
+         * The thread is recreated with:
+         * - All previous messages
+         * - The AIContextProvider state (the preferences)
          */
         existingThread = await ThreadPersistence.LoadThreadAsync(agent, conversationId);
 
         if (existingThread != null)
         {
-            ConsoleHelper.WriteSuccess($"Conversazione '{conversationId}' caricata!");
+            ConsoleHelper.WriteSuccess($"Conversation '{conversationId}' loaded!");
         }
         else
         {
-            ConsoleHelper.WriteError("Impossibile caricare la conversazione");
+            ConsoleHelper.WriteError("Unable to load conversation");
             existingThread = null;
         }
     }
     else
     {
-        ConsoleHelper.WriteInfo("Avvio nuova conversazione");
+        ConsoleHelper.WriteInfo("Starting new conversation");
     }
 }
 else
 {
-    ConsoleHelper.WriteInfo("Nessuna conversazione salvata - Avvio nuova sessione");
+    ConsoleHelper.WriteInfo("No saved conversations - Starting new session");
 }
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * SETUP DEL THREAD
+ * THREAD SETUP
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Se abbiamo caricato un thread esistente, lo usiamo.
- * Altrimenti ne creiamo uno nuovo.
+ * If we loaded an existing thread, we use it.
+ * Otherwise we create a new one.
  */
 
 AgentThread thread = existingThread ?? agent.GetNewThread();
 
 Console.WriteLine();
 ConsoleHelper.WriteInfo(existingThread != null
-    ? "Usando thread caricato - la conversazione continua da dove era rimasta"
-    : "Nuovo thread creato - inizia una nuova conversazione");
+    ? "Using loaded thread - conversation continues from where it left off"
+    : "New thread created - starting a new conversation");
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * LOOP DI CONVERSAZIONE
+ * CONVERSATION LOOP
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-ConsoleHelper.WriteSeparator("Step 4: Avvio conversazione");
+ConsoleHelper.WriteSeparator("Step 4: Starting conversation");
 
 Console.WriteLine();
-Console.WriteLine("COMANDI SPECIALI:");
-Console.WriteLine("  'esci' o 'quit'    - Termina e salva la conversazione");
-Console.WriteLine("  'reset'            - Cancella preferenze e conversazioni");
-Console.WriteLine("  'memoria'          - Mostra stato della memoria");
-Console.WriteLine("  'salva'            - Forza salvataggio conversazione");
+Console.WriteLine("SPECIAL COMMANDS:");
+Console.WriteLine("  'esci' or 'quit'   - Exit and save the conversation");
+Console.WriteLine("  'reset'            - Clear preferences and conversations");
+Console.WriteLine("  'memoria'          - Show memory status");
+Console.WriteLine("  'salva'            - Force save conversation");
 Console.WriteLine();
 
-// Suggerimenti per testare la memoria
+// Suggestions for testing memory
 if (string.IsNullOrEmpty(preferencesMemory.Preferences.Nome))
 {
-    Console.WriteLine("SUGGERIMENTO: Prova a dire 'Mi chiamo [tuo nome]' per testare la memoria!");
-    Console.WriteLine("              Oppure: 'Sto lavorando sul progetto [nome progetto]'");
+    Console.WriteLine("SUGGESTION: Try saying 'My name is [your name]' to test the memory!");
+    Console.WriteLine("            Or: 'I'm working on the [project name] project'");
     Console.WriteLine();
 }
 
-// Inviamo le istruzioni come primo messaggio di sistema
-// Questo è un workaround perché ChatCompletionOptions.Instructions non è sempre supportato
+// Send instructions as first system message
+// This is a workaround because ChatCompletionOptions.Instructions is not always supported
 var systemMessage = agentInstructions;
 
 int messageCount = 0;
 
 while (true)
 {
-    // Input utente
+    // User input
     ConsoleHelper.WriteUserMessage("");
     Console.Write("> ");
     var userInput = Console.ReadLine();
 
-    // Gestione input vuoto
+    // Handle empty input
     if (string.IsNullOrWhiteSpace(userInput))
     {
         continue;
     }
 
-    // Comandi speciali
+    // Special commands
     var command = userInput.Trim().ToLowerInvariant();
 
     if (command is "esci" or "quit" or "exit")
     {
-        // Salviamo la conversazione prima di uscire
+        // Save the conversation before exiting
         await ThreadPersistence.SaveThreadAsync(thread, conversationId);
         preferencesMemory.SavePreferences();
 
         Console.WriteLine();
-        ConsoleHelper.WriteSuccess($"Conversazione salvata come '{conversationId}'");
-        ConsoleHelper.WriteSuccess("Preferenze salvate");
-        ConsoleHelper.WriteInfo("Alla prossima!");
+        ConsoleHelper.WriteSuccess($"Conversation saved as '{conversationId}'");
+        ConsoleHelper.WriteSuccess("Preferences saved");
+        ConsoleHelper.WriteInfo("See you next time!");
         break;
     }
 
     if (command == "reset")
     {
-        Console.Write("Sei sicuro di voler cancellare TUTTE le preferenze e conversazioni? (s/n): ");
-        if (Console.ReadLine()?.Trim().ToLowerInvariant() == "s")
+        Console.Write("Are you sure you want to delete ALL preferences and conversations? (y/n): ");
+        if (Console.ReadLine()?.Trim().ToLowerInvariant() == "y")
         {
             preferencesMemory.ClearPreferences();
 
-            // Cancelliamo tutte le conversazioni
+            // Delete all conversations
             foreach (var convId in ThreadPersistence.ListSavedConversations())
             {
                 ThreadPersistence.DeleteThread(convId);
             }
 
-            // Creiamo un nuovo thread
+            // Create a new thread
             thread = agent.GetNewThread();
             conversationId = $"session_{DateTime.Now:yyyyMMdd_HHmmss}";
             messageCount = 0;
 
-            ConsoleHelper.WriteSuccess("Memoria resettata completamente!");
+            ConsoleHelper.WriteSuccess("Memory completely reset!");
         }
         continue;
     }
@@ -334,19 +334,19 @@ while (true)
     if (command == "memoria")
     {
         Console.WriteLine();
-        Console.WriteLine("=== STATO MEMORIA ===");
+        Console.WriteLine("=== MEMORY STATUS ===");
         Console.WriteLine();
-        Console.WriteLine("PREFERENZE UTENTE:");
-        Console.WriteLine($"  Nome: {preferencesMemory.Preferences.Nome ?? "(non impostato)"}");
-        Console.WriteLine($"  Stile: {preferencesMemory.Preferences.StileComunicazione ?? "(non impostato)"}");
-        Console.WriteLine($"  Progetto: {preferencesMemory.Preferences.ProgettoCorrente ?? "(non impostato)"}");
-        Console.WriteLine($"  Interessi: {(preferencesMemory.Preferences.ArgomentiInteresse.Count > 0 ? string.Join(", ", preferencesMemory.Preferences.ArgomentiInteresse) : "(nessuno)")}");
+        Console.WriteLine("USER PREFERENCES:");
+        Console.WriteLine($"  Name: {preferencesMemory.Preferences.Nome ?? "(not set)"}");
+        Console.WriteLine($"  Style: {preferencesMemory.Preferences.StileComunicazione ?? "(not set)"}");
+        Console.WriteLine($"  Project: {preferencesMemory.Preferences.ProgettoCorrente ?? "(not set)"}");
+        Console.WriteLine($"  Interests: {(preferencesMemory.Preferences.ArgomentiInteresse.Count > 0 ? string.Join(", ", preferencesMemory.Preferences.ArgomentiInteresse) : "(none)")}");
         Console.WriteLine();
-        Console.WriteLine("CONVERSAZIONE:");
+        Console.WriteLine("CONVERSATION:");
         Console.WriteLine($"  ID: {conversationId}");
-        Console.WriteLine($"  Messaggi in sessione: {messageCount}");
+        Console.WriteLine($"  Messages in session: {messageCount}");
         Console.WriteLine();
-        Console.WriteLine("CONVERSAZIONI SALVATE:");
+        Console.WriteLine("SAVED CONVERSATIONS:");
         var saved = ThreadPersistence.ListSavedConversations().ToList();
         if (saved.Count > 0)
         {
@@ -357,7 +357,7 @@ while (true)
         }
         else
         {
-            Console.WriteLine("  (nessuna)");
+            Console.WriteLine("  (none)");
         }
         Console.WriteLine();
         continue;
@@ -367,41 +367,41 @@ while (true)
     {
         await ThreadPersistence.SaveThreadAsync(thread, conversationId);
         preferencesMemory.SavePreferences();
-        ConsoleHelper.WriteSuccess($"Conversazione salvata come '{conversationId}'");
+        ConsoleHelper.WriteSuccess($"Conversation saved as '{conversationId}'");
         continue;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Invocazione dell'agente
+    // Agent invocation
     // ─────────────────────────────────────────────────────────────────────────
 
     try
     {
         /*
-         * COSA SUCCEDE DURANTE RunStreamingAsync:
+         * WHAT HAPPENS DURING RunStreamingAsync:
          *
-         * 1. Il messaggio utente viene aggiunto al thread
-         * 2. Il framework chiama TUTTI i contextProviders registrati
-         *    → preferencesMemory.InvokingAsync() viene chiamato
-         *    → Genera contesto dalle preferenze salvate
-         * 3. Il contesto viene aggiunto alle istruzioni
-         * 4. Tutto viene inviato all'LLM
-         * 5. La risposta viene streamata
-         * 6. Il framework chiama preferencesMemory.InvokedAsync()
-         *    → Estrae nuove preferenze dai messaggi
-         * 7. La risposta viene aggiunta al thread
+         * 1. User message is added to the thread
+         * 2. Framework calls ALL registered contextProviders
+         *    → preferencesMemory.InvokingAsync() is called
+         *    → Generates context from saved preferences
+         * 3. Context is added to the instructions
+         * 4. Everything is sent to the LLM
+         * 5. The response is streamed
+         * 6. Framework calls preferencesMemory.InvokedAsync()
+         *    → Extracts new preferences from messages
+         * 7. The response is added to the thread
          */
 
         ConsoleHelper.WriteAgentMessage("");
 
-        // Per il primo messaggio, includiamo le istruzioni come contesto
+        // For the first message, include instructions as context
         var promptWithContext = messageCount == 0
-            ? $"[Contesto sistema: {systemMessage}]\n\n{userInput}"
+            ? $"[System context: {systemMessage}]\n\n{userInput}"
             : userInput;
 
         await foreach (var update in agent.RunStreamingAsync(promptWithContext, thread))
         {
-            // Streaming della risposta
+            // Stream the response
             ConsoleHelper.WriteStreamChunk(update.ToString());
         }
 
@@ -409,52 +409,52 @@ while (true)
 
         messageCount++;
 
-        // Salviamo periodicamente (ogni 5 scambi)
+        // Save periodically (every 5 exchanges)
         if (messageCount % 5 == 0)
         {
             await ThreadPersistence.SaveThreadAsync(thread, conversationId);
-            ConsoleHelper.WriteInfo("[Auto-save conversazione]");
+            ConsoleHelper.WriteInfo("[Auto-save conversation]");
         }
     }
     catch (Exception ex)
     {
-        ConsoleHelper.WriteError($"Errore durante l'elaborazione: {ex.Message}");
+        ConsoleHelper.WriteError($"Error during processing: {ex.Message}");
 
-        // In caso di errore, mostriamo più dettagli per debug
+        // In case of error, show more details for debugging
         if (ex.InnerException != null)
         {
-            Console.WriteLine($"  Dettaglio: {ex.InnerException.Message}");
+            Console.WriteLine($"  Detail: {ex.InnerException.Message}");
         }
     }
 }
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * RIEPILOGO CONCETTI APPRESI
+ * SUMMARY OF LEARNED CONCEPTS
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * 1. MEMORIA IMPLICITA (Thread):
- *    - AgentThread mantiene tutti i messaggi in memoria
- *    - L'agente "ricorda" la conversazione corrente automaticamente
+ * 1. IMPLICIT MEMORY (Thread):
+ *    - AgentThread maintains all messages in memory
+ *    - The agent "remembers" the current conversation automatically
  *
- * 2. PERSISTENZA THREAD:
- *    - thread.Serialize() → salva il thread come JsonElement
- *    - agent.DeserializeThread() → ricarica il thread
- *    - Permette di riprendere conversazioni tra sessioni
+ * 2. THREAD PERSISTENCE:
+ *    - thread.Serialize() → saves the thread as JsonElement
+ *    - agent.DeserializeThread() → reloads the thread
+ *    - Allows resuming conversations between sessions
  *
  * 3. AIContextProvider:
- *    - Classe astratta per iniettare contesto dinamico
- *    - InvokingAsync: chiamato PRIMA dell'invocazione LLM
- *    - InvokedAsync: chiamato DOPO l'invocazione LLM
- *    - Restituisce AIContext con Instructions, Messages, Tools
+ *    - Abstract class for injecting dynamic context
+ *    - InvokingAsync: called BEFORE the LLM invocation
+ *    - InvokedAsync: called AFTER the LLM invocation
+ *    - Returns AIContext with Instructions, Messages, Tools
  *
- * 4. MEMORIA A LUNGO TERMINE:
- *    - Estraiamo FATTI importanti dalle conversazioni
- *    - Li salviamo in formato strutturato (JSON, DB, etc.)
- *    - Li iniettiamo nel contesto quando rilevanti
+ * 4. LONG-TERM MEMORY:
+ *    - We extract important FACTS from conversations
+ *    - We save them in structured format (JSON, DB, etc.)
+ *    - We inject them into context when relevant
  *
- * NEL PROSSIMO PROGETTO:
- * - Vector Store per memoria semantica
- * - Embeddings per ricerca per similarità
+ * IN THE NEXT PROJECT:
+ * - Vector Store for semantic memory
+ * - Embeddings for similarity search
  * - RAG (Retrieval Augmented Generation)
  */

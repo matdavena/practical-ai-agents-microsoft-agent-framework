@@ -2,17 +2,17 @@
   ╔══════════════════════════════════════════════════════════════════════════════╗
   ║                  LEARNING AGENT FRAMEWORK - PACKAGE VERSIONS                  ║
   ╠══════════════════════════════════════════════════════════════════════════════╣
-  ║  Central Package Management (CPM) - Gestione centralizzata versioni NuGet    ║
+  ║  Central Package Management (CPM) - Centralized NuGet version management     ║
   ║                                                                               ║
-  ║  COME FUNZIONA:                                                               ║
-  ║  - Qui definiamo TUTTE le versioni dei pacchetti NuGet                        ║
-  ║  - Nei .csproj usiamo <PackageReference Include="..." /> SENZA Version        ║
-  ║  - MSBuild prende automaticamente la versione da questo file                  ║
+  ║  HOW IT WORKS:                                                                ║
+  ║  - All NuGet package versions are defined here                                ║
+  ║  - In .csproj files use <PackageReference Include="..." /> WITHOUT Version   ║
+  ║  - MSBuild automatically picks up the version from this file                  ║
   ║                                                                               ║
-  ║  VANTAGGI:                                                                    ║
-  ║  - Una sola posizione per aggiornare le versioni                              ║
-  ║  - Nessun conflitto di versioni tra progetti                                  ║
-  ║  - Visione chiara di tutte le dipendenze                                      ║
+  ║  BENEFITS:                                                                    ║
+  ║  - Single location to update versions                                         ║
+  ║  - No version conflicts between projects                                      ║
+  ║  - Clear overview of all dependencies                                         ║
   ╚══════════════════════════════════════════════════════════════════════════════╝
 -->
 <Project>
@@ -25,160 +25,160 @@
       ══════════════════════════════════════════════════════════════════════════
       MICROSOFT AGENT FRAMEWORK - Core packages
       ══════════════════════════════════════════════════════════════════════════
-      Questi sono i pacchetti principali del Microsoft Agent Framework.
-      Nota: Le versioni potrebbero cambiare rapidamente essendo in Preview.
+      These are the main packages of the Microsoft Agent Framework.
+      Note: Versions may change rapidly as they are in Preview.
     -->
 
     <!--
-      Microsoft.Agents.AI - Il cuore del framework
-      Contiene: ChatClientAgent, AgentThread, Tool system, Middleware
+      Microsoft.Agents.AI - The heart of the framework
+      Contains: ChatClientAgent, AgentThread, Tool system, Middleware
     -->
     <PackageVersion Include="Microsoft.Agents.AI" Version="1.0.0-preview.251219.1" />
 
     <!--
-      Microsoft.Agents.AI.OpenAI - Integrazione con OpenAI
-      Permette di usare modelli GPT-4, GPT-4o, o3, etc.
+      Microsoft.Agents.AI.OpenAI - OpenAI integration
+      Enables use of GPT-4, GPT-4o, o3 models, etc.
     -->
     <PackageVersion Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251219.1" />
 
     <!--
-      Microsoft.Agents.AI.Abstractions - Interfacce e contratti base
-      Utile per creare implementazioni custom
+      Microsoft.Agents.AI.Abstractions - Base interfaces and contracts
+      Useful for creating custom implementations
     -->
     <PackageVersion Include="Microsoft.Agents.AI.Abstractions" Version="1.0.0-preview.251219.1" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      MICROSOFT AGENT FRAMEWORK - Feature packages (da aggiungere progressivamente)
+      MICROSOFT AGENT FRAMEWORK - Feature packages (to be added progressively)
       ══════════════════════════════════════════════════════════════════════════
     -->
 
-    <!-- Workflow orchestration - per orchestrazione multi-step -->
+    <!-- Workflow orchestration - for multi-step orchestration -->
     <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-preview.251219.1" />
 
-    <!-- Agent-to-Agent communication - per sistemi multi-agente -->
+    <!-- Agent-to-Agent communication - for multi-agent systems -->
     <PackageVersion Include="Microsoft.Agents.AI.A2A" Version="1.0.0-preview.251219.1" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      MICROSOFT EXTENSIONS - Pacchetti di supporto Microsoft
+      MICROSOFT EXTENSIONS - Microsoft support packages
       ══════════════════════════════════════════════════════════════════════════
     -->
 
-    <!-- Dependency Injection - per IoC container -->
+    <!-- Dependency Injection - for IoC container -->
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
 
-    <!-- Configuration - per gestione settings e env variables -->
+    <!-- Configuration - for settings and environment variables management -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.0-preview.7.25380.108" />
 
-    <!-- Hosting - per applicazioni hosted -->
+    <!-- Hosting - for hosted applications -->
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.7.25380.108" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      OPENAI SDK - Per accesso diretto alle API OpenAI
+      OPENAI SDK - For direct access to OpenAI APIs
       ══════════════════════════════════════════════════════════════════════════
     -->
     <PackageVersion Include="OpenAI" Version="2.8.0" />
 
     <!--
-      Microsoft.Extensions.AI.OpenAI - Integrazione OpenAI con Microsoft.Extensions.AI
-      Fornisce AsIChatClient() e AsIEmbeddingGenerator() per OpenAI SDK
-      NOTA: La versione deve essere >= a quella richiesta da Microsoft.Agents.AI.OpenAI
+      Microsoft.Extensions.AI.OpenAI - OpenAI integration with Microsoft.Extensions.AI
+      Provides AsIChatClient() and AsIEmbeddingGenerator() for OpenAI SDK
+      NOTE: Version must be >= the one required by Microsoft.Agents.AI.OpenAI
     -->
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      AZURE OPENAI - Per deployment enterprise su Azure
+      AZURE OPENAI - For enterprise deployments on Azure
       ══════════════════════════════════════════════════════════════════════════
-      Azure OpenAI offre gli stessi modelli di OpenAI ma con:
-      - SLA enterprise e compliance
-      - Integrazione con Azure Active Directory
-      - Controllo regionale dei dati
+      Azure OpenAI offers the same models as OpenAI but with:
+      - Enterprise SLA and compliance
+      - Azure Active Directory integration
+      - Regional data control
     -->
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.3.0-beta.1" />
     <PackageVersion Include="Azure.Identity" Version="1.13.2" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      OLLAMA - Per modelli LLM locali
+      OLLAMA - For local LLM models
       ══════════════════════════════════════════════════════════════════════════
-      Ollama permette di eseguire modelli LLM localmente:
-      - Nessun costo per token
-      - Privacy totale (dati non escono dal PC)
-      - Funziona offline
-      - Supporta: Llama, Gemma, Mistral, Phi, etc.
+      Ollama allows running LLM models locally:
+      - No cost per token
+      - Total privacy (data doesn't leave your PC)
+      - Works offline
+      - Supports: Llama, Gemma, Mistral, Phi, etc.
     -->
     <PackageVersion Include="OllamaSharp" Version="5.1.12" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      ANTHROPIC CLAUDE - Per modelli Claude (Claude 3.5, Claude 4, etc.)
+      ANTHROPIC CLAUDE - For Claude models (Claude 3.5, Claude 4, etc.)
       ══════════════════════════════════════════════════════════════════════════
-      Anthropic offre modelli Claude, noti per:
-      - Eccellente ragionamento e analisi
-      - Contesto lungo (fino a 200K token)
-      - Forte allineamento etico
+      Anthropic offers Claude models, known for:
+      - Excellent reasoning and analysis
+      - Long context (up to 200K tokens)
+      - Strong ethical alignment
     -->
     <PackageVersion Include="Anthropic.SDK" Version="5.8.0" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      GOOGLE GEMINI - Per modelli Gemini (Gemini Pro, Gemini Flash, etc.)
+      GOOGLE GEMINI - For Gemini models (Gemini Pro, Gemini Flash, etc.)
       ══════════════════════════════════════════════════════════════════════════
-      Google Gemini offre:
-      - Modelli multimodali (testo, immagini, video)
-      - Gemini Flash per risposte veloci e economiche
-      - Gemini Pro per task complessi
+      Google Gemini offers:
+      - Multimodal models (text, images, video)
+      - Gemini Flash for fast and economical responses
+      - Gemini Pro for complex tasks
     -->
     <PackageVersion Include="Mscc.GenerativeAI.Microsoft" Version="2.3.1" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      SEMANTIC KERNEL - Per funzionalità RAG e Vector Store
+      SEMANTIC KERNEL - For RAG and Vector Store functionality
       ══════════════════════════════════════════════════════════════════════════
-      Nota: Microsoft Agent Framework può usare i connector di Semantic Kernel
-      per le funzionalità di vector store e embedding.
+      Note: Microsoft Agent Framework can use Semantic Kernel connectors
+      for vector store and embedding functionality.
     -->
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.54.0-preview" />
 
-    <!-- Qdrant Vector Store - Database vettoriale nativo, ottimo per RAG -->
+    <!-- Qdrant Vector Store - Native vector database, great for RAG -->
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.54.0-preview" />
 
-    <!-- SQL Server Vector Store - Per chi usa già SQL Server (richiede SQL Server 2025) -->
+    <!-- SQL Server Vector Store - For those already using SQL Server (requires SQL Server 2025) -->
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.SqlServer" Version="1.54.0-preview" />
 
-    <!-- PostgreSQL + pgvector - Soluzione open source popolare per vector search -->
-    <!-- NOTA: Package rinominato in PgVector dal maggio 2025 -->
+    <!-- PostgreSQL + pgvector - Popular open source solution for vector search -->
+    <!-- NOTE: Package renamed to PgVector since May 2025 -->
     <PackageVersion Include="Microsoft.SemanticKernel.Connectors.PgVector" Version="1.54.0-preview" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      UTILITY PACKAGES - Pacchetti di utilità generale
+      UTILITY PACKAGES - General utility packages
       ══════════════════════════════════════════════════════════════════════════
     -->
 
-    <!-- Spectre.Console - Per output console ricco e colorato -->
+    <!-- Spectre.Console - For rich and colorful console output -->
     <PackageVersion Include="Spectre.Console" Version="0.50.0" />
 
     <!--
       ══════════════════════════════════════════════════════════════════════════
-      MODEL CONTEXT PROTOCOL (MCP) - Per integrazione con tool server esterni
+      MODEL CONTEXT PROTOCOL (MCP) - For integration with external tool servers
       ══════════════════════════════════════════════════════════════════════════
-      MCP è un protocollo standard per connettere LLM a server che espongono:
-      - Tools (funzioni che l'LLM può chiamare)
-      - Resources (dati/contesto)
-      - Prompts (template predefiniti)
+      MCP is a standard protocol for connecting LLMs to servers that expose:
+      - Tools (functions the LLM can call)
+      - Resources (data/context)
+      - Prompts (predefined templates)
     -->
     <PackageVersion Include="ModelContextProtocol" Version="0.4.0-preview.3" />
 
-    <!-- MCP AspNetCore - Per creare MCP Server con trasporto HTTP -->
+    <!-- MCP AspNetCore - For creating MCP Servers with HTTP transport -->
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="0.4.0-preview.3" />
 
     <!--
@@ -194,10 +194,10 @@
       DATABASE PACKAGES - For data access
       ══════════════════════════════════════════════════════════════════════════
     -->
-    <!-- Dapper - Micro-ORM leggero e performante -->
+    <!-- Dapper - Lightweight and performant micro-ORM -->
     <PackageVersion Include="Dapper" Version="2.1.35" />
 
-    <!-- Microsoft.Data.Sqlite - Provider SQLite per .NET -->
+    <!-- Microsoft.Data.Sqlite - SQLite provider for .NET -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0-rc.1.25451.107" />
 
     <!--

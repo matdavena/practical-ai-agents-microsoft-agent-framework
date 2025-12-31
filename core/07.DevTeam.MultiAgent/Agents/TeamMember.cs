@@ -2,13 +2,13 @@
 // 07. DEV TEAM - MULTI-AGENT
 // FILE: TeamMember.cs
 // ============================================================================
-// Questo file definisce i ruoli e le configurazioni degli agenti del team.
+// This file defines the roles and configurations of team agents.
 //
-// ARCHITETTURA MULTI-AGENTE:
+// MULTI-AGENT ARCHITECTURE:
 //
 //    ┌─────────────────────────────────────────────────────────────────────┐
 //    │                         TEAM LEAD                                    │
-//    │    Coordina il team, assegna task, aggrega risultati                │
+//    │    Coordinates the team, assigns tasks, aggregates results          │
 //    └──────────────────────────┬──────────────────────────────────────────┘
 //                               │
 //         ┌─────────────────────┼─────────────────────┐
@@ -17,15 +17,15 @@
 //    ┌──────────┐         ┌──────────┐         ┌──────────┐
 //    │ ARCHITECT│         │ DEVELOPER│         │ REVIEWER │
 //    │          │         │          │         │          │
-//    │ Progetta │         │ Scrive   │         │ Revisiona│
-//    │ soluzioni│         │ codice   │         │ codice   │
+//    │ Designs  │         │ Writes   │         │ Reviews  │
+//    │ solutions│         │ code     │         │ code     │
 //    └──────────┘         └──────────┘         └──────────┘
 //
-// VANTAGGI MULTI-AGENTE:
-// - Specializzazione: ogni agente è esperto nel suo dominio
-// - Modularità: facile aggiungere/rimuovere competenze
-// - Parallelismo: più agenti possono lavorare contemporaneamente
-// - Qualità: revisione incrociata migliora i risultati
+// MULTI-AGENT ADVANTAGES:
+// - Specialization: each agent is expert in its domain
+// - Modularity: easy to add/remove competencies
+// - Parallelism: multiple agents can work concurrently
+// - Quality: cross review improves results
 // ============================================================================
 
 using Microsoft.Agents.AI;
@@ -35,87 +35,87 @@ using OpenAI.Chat;
 namespace DevTeam.MultiAgent.Agents;
 
 /// <summary>
-/// Ruoli disponibili nel team di sviluppo.
+/// Available roles in the development team.
 /// </summary>
 public enum TeamRole
 {
     /// <summary>
-    /// Team Lead: coordina il team e gestisce il workflow.
+    /// Team Lead: coordinates the team and manages the workflow.
     /// </summary>
     TeamLead,
 
     /// <summary>
-    /// Architect: progetta l'architettura e le soluzioni tecniche.
+    /// Architect: designs the architecture and technical solutions.
     /// </summary>
     Architect,
 
     /// <summary>
-    /// Developer: implementa il codice seguendo le specifiche.
+    /// Developer: implements the code following specifications.
     /// </summary>
     Developer,
 
     /// <summary>
-    /// Reviewer: revisiona il codice e suggerisce miglioramenti.
+    /// Reviewer: reviews the code and suggests improvements.
     /// </summary>
     Reviewer
 }
 
 /// <summary>
-/// Rappresenta un membro del team di sviluppo AI.
+/// Represents a member of the AI development team.
 ///
-/// Ogni membro ha:
-/// - Un ruolo specifico (Architect, Developer, Reviewer, TeamLead)
-/// - Un prompt di sistema personalizzato per il ruolo
-/// - Un agente ChatClientAgent configurato
-/// - Un thread dedicato per le conversazioni
+/// Each member has:
+/// - A specific role (Architect, Developer, Reviewer, TeamLead)
+/// - A customized system prompt for the role
+/// - A configured ChatClientAgent
+/// - A dedicated thread for conversations
 /// </summary>
 public class TeamMember
 {
     // ========================================================================
-    // PROPRIETÀ
+    // PROPERTIES
     // ========================================================================
 
     /// <summary>
-    /// Ruolo del membro nel team.
+    /// Role of the member in the team.
     /// </summary>
     public TeamRole Role { get; }
 
     /// <summary>
-    /// Nome visualizzato del membro.
+    /// Display name of the member.
     /// </summary>
     public string Name { get; }
 
     /// <summary>
-    /// Emoji per identificare visivamente il membro.
+    /// Emoji to visually identify the member.
     /// </summary>
     public string Emoji { get; }
 
     /// <summary>
-    /// Agente AI sottostante.
+    /// Underlying AI agent.
     /// </summary>
     public ChatClientAgent Agent { get; }
 
     /// <summary>
-    /// Thread di conversazione dedicato.
+    /// Dedicated conversation thread.
     /// </summary>
     public AgentThread Thread { get; private set; }
 
     /// <summary>
-    /// System prompt che definisce il comportamento dell'agente.
+    /// System prompt that defines the agent's behavior.
     /// </summary>
     public string SystemPrompt { get; }
 
     /// <summary>
-    /// Indica se è il primo messaggio (per iniettare il system prompt).
+    /// Indicates if it's the first message (to inject the system prompt).
     /// </summary>
     private bool _isFirstMessage = true;
 
     // ========================================================================
-    // COSTRUTTORE
+    // CONSTRUCTOR
     // ========================================================================
 
     /// <summary>
-    /// Crea un nuovo membro del team.
+    /// Creates a new team member.
     /// </summary>
     private TeamMember(
         TeamRole role,
@@ -137,7 +137,7 @@ public class TeamMember
     // ========================================================================
 
     /// <summary>
-    /// Crea un membro del team con il ruolo specificato.
+    /// Creates a team member with the specified role.
     /// </summary>
     public static TeamMember Create(TeamRole role, ChatClient chatClient)
     {
@@ -156,7 +156,7 @@ public class TeamMember
     }
 
     /// <summary>
-    /// Ottiene la configurazione per un ruolo specifico.
+    /// Gets the configuration for a specific role.
     /// </summary>
     private static (string name, string emoji, string systemPrompt) GetRoleConfiguration(TeamRole role)
     {
@@ -268,30 +268,30 @@ public class TeamMember
     }
 
     /// <summary>
-    /// Ottiene la temperatura appropriata per il ruolo.
+    /// Gets the appropriate temperature for the role.
     /// </summary>
     private static float GetTemperatureForRole(TeamRole role)
     {
         return role switch
         {
-            TeamRole.TeamLead => 0.5f,   // Bilanciato
-            TeamRole.Architect => 0.7f,  // Più creativo
-            TeamRole.Developer => 0.3f,  // Più deterministico
-            TeamRole.Reviewer => 0.2f,   // Molto preciso
+            TeamRole.TeamLead => 0.5f,   // Balanced
+            TeamRole.Architect => 0.7f,  // More creative
+            TeamRole.Developer => 0.3f,  // More deterministic
+            TeamRole.Reviewer => 0.2f,   // Very precise
             _ => 0.5f
         };
     }
 
     // ========================================================================
-    // METODI DI INTERAZIONE
+    // INTERACTION METHODS
     // ========================================================================
 
     /// <summary>
-    /// Invia un messaggio all'agente e ottiene la risposta.
+    /// Sends a message to the agent and gets the response.
     /// </summary>
-    /// <param name="message">Messaggio da inviare</param>
-    /// <param name="includeSystemPrompt">Se includere il system prompt</param>
-    /// <returns>Risposta dell'agente</returns>
+    /// <param name="message">Message to send</param>
+    /// <param name="includeSystemPrompt">Whether to include the system prompt</param>
+    /// <returns>Agent's response</returns>
     public async Task<string> AskAsync(string message, bool includeSystemPrompt = true)
     {
         var prompt = includeSystemPrompt && _isFirstMessage
@@ -305,7 +305,7 @@ public class TeamMember
     }
 
     /// <summary>
-    /// Invia un messaggio con streaming della risposta.
+    /// Sends a message with streaming response.
     /// </summary>
     public async IAsyncEnumerable<string> AskStreamingAsync(string message, bool includeSystemPrompt = true)
     {
@@ -322,7 +322,7 @@ public class TeamMember
     }
 
     /// <summary>
-    /// Resetta il thread di conversazione.
+    /// Resets the conversation thread.
     /// </summary>
     public void ResetThread()
     {
@@ -331,7 +331,7 @@ public class TeamMember
     }
 
     /// <summary>
-    /// Rappresentazione testuale del membro.
+    /// Textual representation of the member.
     /// </summary>
     public override string ToString() => $"{Emoji} {Name}";
 }

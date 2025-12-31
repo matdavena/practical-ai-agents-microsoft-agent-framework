@@ -2,36 +2,36 @@
 // 05. CODE REVIEWER - RAG
 // FILE: KnowledgeBaseProvider.cs
 // ============================================================================
-// Questo file implementa l'AIContextProvider per RAG.
+// This file implements the AIContextProvider for RAG.
 //
-// INTEGRAZIONE RAG + AGENTE:
+// RAG + AGENT INTEGRATION:
 //
 // ┌─────────────────────────────────────────────────────────────────────────┐
-// │                          FLUSSO RAG                                     │
+// │                          RAG FLOW                                       │
 // └─────────────────────────────────────────────────────────────────────────┘
 //
-//    1. Utente fa domanda          2. Provider intercetta
+//    1. User asks question         2. Provider intercepts
 //    ┌────────────────┐            ┌────────────────┐
-//    │ "Come gestire  │ ────────►  │ InvokingAsync  │
-//    │  le eccezioni?"│            │ (prima di LLM) │
+//    │ "How to handle │ ────────►  │ InvokingAsync  │
+//    │  exceptions?"  │            │ (before LLM)   │
 //    └────────────────┘            └───────┬────────┘
 //                                          │
-//    3. Ricerca semantica                  ▼
+//    3. Semantic search                    ▼
 //    ┌────────────────────────────────────────────────────┐
-//    │ TextSearchStore.SearchAsync("eccezioni")           │
-//    │ → Trova: error-handling.md (score: 0.89)           │
-//    │ → Trova: async-best-practices.md (score: 0.72)     │
+//    │ TextSearchStore.SearchAsync("exceptions")          │
+//    │ → Found: error-handling.md (score: 0.89)           │
+//    │ → Found: async-best-practices.md (score: 0.72)     │
 //    └───────────────────────────┬────────────────────────┘
 //                                │
-//    4. Inietta nel contesto     ▼
+//    4. Inject in context        ▼
 //    ┌────────────────────────────────────────────────────┐
 //    │ AIContext.Instructions += knowledge base context   │
 //    └───────────────────────────┬────────────────────────┘
 //                                │
-//    5. LLM risponde             ▼
+//    5. LLM responds             ▼
 //    ┌────────────────────────────────────────────────────┐
-//    │ "Secondo le best practices (error-handling.md),    │
-//    │  dovresti sempre catch eccezioni specifiche..."    │
+//    │ "According to best practices (error-handling.md),  │
+//    │  you should always catch specific exceptions..."   │
 //    └────────────────────────────────────────────────────┘
 //
 // ============================================================================
@@ -42,49 +42,49 @@ using Microsoft.Extensions.AI;
 namespace CodeReviewer.RAG.Rag;
 
 /// <summary>
-/// AIContextProvider che implementa RAG (Retrieval-Augmented Generation).
+/// AIContextProvider that implements RAG (Retrieval-Augmented Generation).
 ///
-/// Questo provider:
-/// 1. Intercetta ogni richiesta dell'utente (InvokingAsync)
-/// 2. Cerca contenuti rilevanti nella knowledge base
-/// 3. Inietta il contesto trovato nelle istruzioni per l'LLM
+/// This provider:
+/// 1. Intercepts each user request (InvokingAsync)
+/// 2. Searches for relevant content in the knowledge base
+/// 3. Injects the found context into the LLM instructions
 ///
-/// BENEFICI RAG:
-/// - L'agente ha accesso a knowledge aggiornata (non solo training data)
-/// - Le risposte sono basate su fonti specifiche e citabili
-/// - Nessun fine-tuning necessario per aggiungere nuova knowledge
+/// RAG BENEFITS:
+/// - The agent has access to updated knowledge (not just training data)
+/// - Responses are based on specific and citable sources
+/// - No fine-tuning needed to add new knowledge
 /// </summary>
 public class KnowledgeBaseProvider : AIContextProvider
 {
     // ========================================================================
-    // DIPENDENZE
+    // DEPENDENCIES
     // ========================================================================
 
     /// <summary>
-    /// Store per la ricerca nella knowledge base.
+    /// Store for searching the knowledge base.
     /// </summary>
     private readonly TextSearchStore _searchStore;
 
     /// <summary>
-    /// Numero di chunk da recuperare per ogni query.
+    /// Number of chunks to retrieve per query.
     /// </summary>
     private readonly int _topK;
 
     /// <summary>
-    /// Score minimo di similarità per includere un chunk.
+    /// Minimum similarity score to include a chunk.
     /// </summary>
     private readonly float _minScore;
 
     // ========================================================================
-    // COSTRUTTORE
+    // CONSTRUCTOR
     // ========================================================================
 
     /// <summary>
-    /// Crea un nuovo KnowledgeBaseProvider.
+    /// Creates a new KnowledgeBaseProvider.
     /// </summary>
-    /// <param name="searchStore">Store per la ricerca semantica</param>
-    /// <param name="topK">Numero di risultati da includere (default: 3)</param>
-    /// <param name="minScore">Score minimo di similarità (default: 0.5)</param>
+    /// <param name="searchStore">Store for semantic search</param>
+    /// <param name="topK">Number of results to include (default: 3)</param>
+    /// <param name="minScore">Minimum similarity score (default: 0.5)</param>
     public KnowledgeBaseProvider(
         TextSearchStore searchStore,
         int topK = 3,
@@ -100,28 +100,28 @@ public class KnowledgeBaseProvider : AIContextProvider
     // ========================================================================
 
     /// <summary>
-    /// Chiamato PRIMA di ogni richiesta all'LLM.
+    /// Called BEFORE each request to the LLM.
     ///
-    /// PROCESSO:
-    /// 1. Estrai l'ultima domanda dell'utente
-    /// 2. Cerca contenuti rilevanti nella knowledge base
-    /// 3. Costruisci il contesto da iniettare
-    /// 4. Ritorna AIContext con le istruzioni aggiuntive
+    /// PROCESS:
+    /// 1. Extract the latest user question
+    /// 2. Search for relevant content in the knowledge base
+    /// 3. Build the context to inject
+    /// 4. Return AIContext with additional instructions
     /// </summary>
     public override async ValueTask<AIContext> InvokingAsync(
         InvokingContext context,
         CancellationToken cancellationToken = default)
     {
-        // Estrai l'ultima domanda dell'utente dalla conversazione
+        // Extract the latest user question from the conversation
         var userQuery = ExtractLatestUserQuery(context);
 
         if (string.IsNullOrEmpty(userQuery))
         {
-            // Nessuna query trovata, non aggiungiamo contesto
+            // No query found, we don't add context
             return new AIContext();
         }
 
-        // Cerca contenuti rilevanti nella knowledge base
+        // Search for relevant content in the knowledge base
         var searchResults = await _searchStore.SearchAsync(
             userQuery,
             _topK,
@@ -129,23 +129,23 @@ public class KnowledgeBaseProvider : AIContextProvider
 
         if (searchResults.Count == 0)
         {
-            // Nessun risultato rilevante trovato
-            Console.WriteLine("  🔍 Nessun contenuto rilevante trovato nella knowledge base");
+            // No relevant results found
+            Console.WriteLine("  🔍 No relevant content found in the knowledge base");
             return new AIContext();
         }
 
-        // Log dei risultati trovati
-        Console.WriteLine($"  🔍 Trovati {searchResults.Count} chunk rilevanti:");
+        // Log the found results
+        Console.WriteLine($"  🔍 Found {searchResults.Count} relevant chunks:");
         foreach (var result in searchResults)
         {
             Console.WriteLine($"     - {result.Document.Title} (score: {result.Score:F2})");
         }
 
-        // Costruisci il contesto da iniettare
+        // Build the context to inject
         var knowledgeContext = BuildKnowledgeContext(searchResults);
 
-        // Ritorna il contesto come istruzioni aggiuntive
-        // Queste istruzioni vengono aggiunte al system prompt
+        // Return the context as additional instructions
+        // These instructions are added to the system prompt
         return new AIContext
         {
             Instructions = knowledgeContext
@@ -157,19 +157,19 @@ public class KnowledgeBaseProvider : AIContextProvider
     // ========================================================================
 
     /// <summary>
-    /// Chiamato DOPO ogni risposta dell'LLM.
+    /// Called AFTER each LLM response.
     ///
-    /// Per il RAG non abbiamo bisogno di fare nulla dopo la risposta.
-    /// Potremmo usare questo hook per:
-    /// - Logging delle risposte
-    /// - Analytics sull'uso della knowledge base
-    /// - Feedback learning (quali chunk sono stati utili)
+    /// For RAG we don't need to do anything after the response.
+    /// We could use this hook for:
+    /// - Response logging
+    /// - Analytics on knowledge base usage
+    /// - Feedback learning (which chunks were useful)
     /// </summary>
     public override ValueTask InvokedAsync(
         InvokedContext context,
         CancellationToken cancellationToken = default)
     {
-        // Nessuna azione necessaria dopo la risposta
+        // No action needed after the response
         return default;
     }
 
@@ -178,11 +178,11 @@ public class KnowledgeBaseProvider : AIContextProvider
     // ========================================================================
 
     /// <summary>
-    /// Estrae l'ultima domanda dell'utente dalla conversazione.
+    /// Extracts the latest user question from the conversation.
     /// </summary>
     private string? ExtractLatestUserQuery(InvokingContext context)
     {
-        // Cerca l'ultimo messaggio dell'utente
+        // Look for the last user message
         var lastUserMessage = context.RequestMessages
             .LastOrDefault(m => m.Role == ChatRole.User);
 
@@ -191,8 +191,8 @@ public class KnowledgeBaseProvider : AIContextProvider
             return null;
         }
 
-        // Estrai il testo dal messaggio
-        // Un messaggio può contenere più parti (testo, immagini, etc.)
+        // Extract the text from the message
+        // A message can contain multiple parts (text, images, etc.)
         var textParts = lastUserMessage.Contents
             .OfType<TextContent>()
             .Select(tc => tc.Text);
@@ -201,12 +201,12 @@ public class KnowledgeBaseProvider : AIContextProvider
     }
 
     /// <summary>
-    /// Costruisce il contesto da iniettare all'agente.
+    /// Builds the context to inject to the agent.
     ///
-    /// Il formato è importante:
-    /// - Chiaro per l'LLM da interpretare
-    /// - Include metadati per citazioni
-    /// - Separatori visivi tra chunk
+    /// The format is important:
+    /// - Clear for the LLM to interpret
+    /// - Includes metadata for citations
+    /// - Visual separators between chunks
     /// </summary>
     private string BuildKnowledgeContext(List<SearchResult> results)
     {

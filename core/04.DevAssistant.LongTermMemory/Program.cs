@@ -2,29 +2,29 @@
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║              04. DEV ASSISTANT - LONG TERM MEMORY (RAG)                      ║
  * ╠══════════════════════════════════════════════════════════════════════════════╣
- * ║  OBIETTIVO: Comprendere la memoria semantica e il pattern RAG                ║
+ * ║  OBJECTIVE: Understand semantic memory and the RAG pattern                   ║
  * ║                                                                              ║
- * ║  CONCETTI CHIAVE:                                                            ║
+ * ║  KEY CONCEPTS:                                                               ║
  * ║                                                                              ║
  * ║  1. EMBEDDINGS                                                               ║
- * ║     - Convertono testo in vettori numerici (es. 1536 o 3072 dimensioni)      ║
- * ║     - Testi simili hanno vettori simili (vicinanza nello spazio)             ║
- * ║     - Permettono la ricerca per similarità semantica                         ║
+ * ║     - Convert text into numerical vectors (e.g. 1536 or 3072 dimensions)     ║
+ * ║     - Similar texts have similar vectors (closeness in space)                ║
+ * ║     - Enable semantic similarity search                                      ║
  * ║                                                                              ║
  * ║  2. VECTOR STORE                                                             ║
- * ║     - Database ottimizzato per vettori                                       ║
- * ║     - Permette ricerche per similarità efficienti                            ║
- * ║     - Esempi: Pinecone, Qdrant, Weaviate, InMemory                           ║
+ * ║     - Database optimized for vectors                                         ║
+ * ║     - Enables efficient similarity searches                                  ║
+ * ║     - Examples: Pinecone, Qdrant, Weaviate, InMemory                         ║
  * ║                                                                              ║
  * ║  3. RAG (Retrieval Augmented Generation)                                     ║
- * ║     - Prima RECUPERA informazioni rilevanti dal vector store                 ║
- * ║     - Poi le FORNISCE come contesto all'LLM                                  ║
- * ║     - L'LLM GENERA una risposta informata                                    ║
+ * ║     - First RETRIEVE relevant information from the vector store              ║
+ * ║     - Then PROVIDE it as context to the LLM                                  ║
+ * ║     - The LLM GENERATES an informed response                                 ║
  * ║                                                                              ║
  * ║  4. ChatHistoryMemoryProvider                                                ║
- * ║     - Implementazione built-in del pattern RAG                               ║
- * ║     - Salva automaticamente i messaggi nel vector store                      ║
- * ║     - Recupera messaggi rilevanti da conversazioni precedenti                ║
+ * ║     - Built-in implementation of the RAG pattern                             ║
+ * ║     - Automatically saves messages to the vector store                       ║
+ * ║     - Retrieves relevant messages from previous conversations                ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
@@ -38,7 +38,7 @@ using OpenAI;
 using OpenAI.Chat;
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONFIGURAZIONE INIZIALE
+// INITIAL CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
 Console.OutputEncoding = Encoding.UTF8;
@@ -51,61 +51,61 @@ var chatModel = ConfigurationHelper.GetOpenAiModel();
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * CONFIGURAZIONE EMBEDDING MODEL
+ * EMBEDDING MODEL CONFIGURATION
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Gli embeddings sono la base della memoria semantica.
+ * Embeddings are the foundation of semantic memory.
  *
- * MODELLI EMBEDDING OPENAI:
- * - text-embedding-3-small: 1536 dimensioni, economico, buono per la maggior parte degli usi
- * - text-embedding-3-large: 3072 dimensioni, più preciso, più costoso
- * - text-embedding-ada-002: 1536 dimensioni, modello legacy
+ * OPENAI EMBEDDING MODELS:
+ * - text-embedding-3-small: 1536 dimensions, economical, good for most uses
+ * - text-embedding-3-large: 3072 dimensions, more precise, more expensive
+ * - text-embedding-ada-002: 1536 dimensions, legacy model
  *
- * COME FUNZIONANO:
- * "Ciao, come stai?" → [0.023, -0.156, 0.891, ..., 0.234] (1536 numeri)
- * "Salve, tutto bene?" → [0.021, -0.148, 0.887, ..., 0.231] (vettore simile!)
+ * HOW THEY WORK:
+ * "Ciao, come stai?" → [0.023, -0.156, 0.891, ..., 0.234] (1536 numbers)
+ * "Salve, tutto bene?" → [0.021, -0.148, 0.887, ..., 0.231] (similar vector!)
  */
 
 ConsoleHelper.WriteSeparator("Step 1: Configurazione Embeddings");
 
-// Modello di embedding - text-embedding-3-small è un buon compromesso
+// Embedding model - text-embedding-3-small is a good compromise
 const string embeddingModel = "text-embedding-3-small";
-const int vectorDimensions = 1536;  // Dimensioni del vettore per text-embedding-3-small
+const int vectorDimensions = 1536;  // Vector dimensions for text-embedding-3-small
 
 ConsoleHelper.WriteInfo($"Embedding Model: {embeddingModel}");
 ConsoleHelper.WriteInfo($"Vector Dimensions: {vectorDimensions}");
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * CREAZIONE DEL VECTOR STORE
+ * VECTOR STORE CREATION
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Il VectorStore è dove salviamo i nostri embeddings.
+ * The VectorStore is where we save our embeddings.
  *
- * TIPI DI VECTOR STORE:
- * - InMemoryVectorStore: Per sviluppo/test, dati persi al riavvio
- * - Pinecone: Cloud-based, scalabile, managed
- * - Qdrant: Open source, self-hosted o cloud
+ * TYPES OF VECTOR STORE:
+ * - InMemoryVectorStore: For development/testing, data lost on restart
+ * - Pinecone: Cloud-based, scalable, managed
+ * - Qdrant: Open source, self-hosted or cloud
  * - Weaviate: Open source, schema-based
- * - Azure AI Search: Integrato con Azure
+ * - Azure AI Search: Integrated with Azure
  *
- * Per questo esempio usiamo InMemoryVectorStore di Semantic Kernel.
- * In produzione, useresti un vector store persistente.
+ * For this example we use Semantic Kernel's InMemoryVectorStore.
+ * In production, you would use a persistent vector store.
  */
 
 ConsoleHelper.WriteSeparator("Step 2: Creazione Vector Store");
 
-// Creiamo il client OpenAI
+// Create the OpenAI client
 var openAiClient = new OpenAIClient(apiKey);
 
 /*
- * CREAZIONE DELL'EMBEDDING GENERATOR:
+ * EMBEDDING GENERATOR CREATION:
  *
- * L'EmbeddingGenerator converte testo in vettori.
- * Usiamo OpenAI's embedding API attraverso Microsoft.Extensions.AI.
+ * The EmbeddingGenerator converts text into vectors.
+ * We use OpenAI's embedding API through Microsoft.Extensions.AI.
  *
- * Il metodo AsIEmbeddingGenerator() converte l'EmbeddingClient di OpenAI
- * nell'interfaccia standard IEmbeddingGenerator usata dal framework.
+ * The AsIEmbeddingGenerator() method converts OpenAI's EmbeddingClient
+ * into the standard IEmbeddingGenerator interface used by the framework.
  */
 var embeddingGenerator = openAiClient
     .GetEmbeddingClient(embeddingModel)
@@ -114,13 +114,13 @@ var embeddingGenerator = openAiClient
 ConsoleHelper.WriteInfo("Embedding Generator creato");
 
 /*
- * CREAZIONE DEL VECTOR STORE:
+ * VECTOR STORE CREATION:
  *
- * InMemoryVectorStore è un'implementazione in memoria di VectorStore.
- * Perfetta per sviluppo e test, ma i dati si perdono al riavvio.
+ * InMemoryVectorStore is an in-memory implementation of VectorStore.
+ * Perfect for development and testing, but data is lost on restart.
  *
- * NOTA: L'EmbeddingGenerator viene passato al VectorStore per
- * generare automaticamente gli embeddings quando salviamo i dati.
+ * NOTE: The EmbeddingGenerator is passed to the VectorStore to
+ * automatically generate embeddings when we save data.
  */
 VectorStore vectorStore = new InMemoryVectorStore(new InMemoryVectorStoreOptions
 {
@@ -131,27 +131,27 @@ ConsoleHelper.WriteSuccess("InMemory Vector Store creato");
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * CREAZIONE DELL'AGENTE CON ChatHistoryMemoryProvider
+ * AGENT CREATION WITH ChatHistoryMemoryProvider
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * ChatHistoryMemoryProvider è un AIContextProvider che:
- * 1. SALVA automaticamente ogni messaggio nel vector store (InvokedAsync)
- * 2. RECUPERA messaggi rilevanti prima di ogni invocazione (InvokingAsync)
- * 3. FORNISCE i messaggi recuperati come contesto all'LLM
+ * ChatHistoryMemoryProvider is an AIContextProvider that:
+ * 1. SAVES every message to the vector store automatically (InvokedAsync)
+ * 2. RETRIEVES relevant messages before each invocation (InvokingAsync)
+ * 3. PROVIDES the retrieved messages as context to the LLM
  *
- * SCOPE (ambito di ricerca):
- * - StorageScope: dove salvare i messaggi (UserId + ThreadId)
- * - SearchScope: dove cercare (può essere più ampio, es. solo UserId)
+ * SCOPE (search scope):
+ * - StorageScope: where to save messages (UserId + ThreadId)
+ * - SearchScope: where to search (can be broader, e.g. only UserId)
  *
- * Questo permette di ricordare informazioni tra conversazioni diverse!
+ * This allows remembering information across different conversations!
  */
 
 ConsoleHelper.WriteSeparator("Step 3: Creazione Agente con Memoria Semantica");
 
-// Generiamo un ID utente fisso (in produzione: dall'autenticazione)
+// Generate a fixed user ID (in production: from authentication)
 const string userId = "dev_user_001";
 
-// ID thread unico per questa sessione
+// Unique thread ID for this session
 string threadId = Guid.NewGuid().ToString();
 
 string agentInstructions = """
@@ -171,12 +171,12 @@ string agentInstructions = """
     """;
 
 /*
- * CREAZIONE DELL'AGENTE CON ChatHistoryMemoryProvider:
+ * AGENT CREATION WITH ChatHistoryMemoryProvider:
  *
- * La factory AIContextProviderFactory viene chiamata quando si crea un nuovo thread.
- * Restituisce un'istanza di ChatHistoryMemoryProvider configurata per:
- * - Salvare messaggi con scope (userId, threadId)
- * - Cercare messaggi solo per userId (trova da tutti i thread!)
+ * The AIContextProviderFactory is called when creating a new thread.
+ * It returns a ChatHistoryMemoryProvider instance configured to:
+ * - Save messages with scope (userId, threadId)
+ * - Search messages only by userId (finds from all threads!)
  */
 ChatClientAgent agent = openAiClient
     .GetChatClient(chatModel)
@@ -188,31 +188,31 @@ ChatClientAgent agent = openAiClient
             Instructions = agentInstructions
         },
         /*
-         * FACTORY PER ChatHistoryMemoryProvider:
+         * FACTORY FOR ChatHistoryMemoryProvider:
          *
-         * Questa factory viene chiamata per ogni nuovo thread.
-         * Configura la memoria semantica con:
-         * - vectorStore: dove salvare/cercare gli embeddings
-         * - collectionName: nome della "tabella" nel vector store
-         * - vectorDimensions: dimensioni del vettore (deve matchare l'embedding model)
-         * - storageScope: dove salvare (userId + threadId specifico)
-         * - searchScope: dove cercare (solo userId - trova da TUTTI i thread!)
+         * This factory is called for each new thread.
+         * Configures semantic memory with:
+         * - vectorStore: where to save/search embeddings
+         * - collectionName: name of the "table" in the vector store
+         * - vectorDimensions: vector dimensions (must match the embedding model)
+         * - storageScope: where to save (userId + specific threadId)
+         * - searchScope: where to search (only userId - finds from ALL threads!)
          */
         AIContextProviderFactory = ctx => new ChatHistoryMemoryProvider(
             vectorStore,
             collectionName: "devassistant_memory",
             vectorDimensions: vectorDimensions,
-            // Salviamo con userId E threadId specifico
+            // Save with userId AND specific threadId
             storageScope: new ChatHistoryMemoryProviderScope
             {
                 UserId = userId,
                 ThreadId = threadId
             },
-            // Ma cerchiamo solo per userId - trova messaggi da TUTTI i thread!
+            // But search only by userId - finds messages from ALL threads!
             searchScope: new ChatHistoryMemoryProviderScope
             {
                 UserId = userId
-                // ThreadId = null significa "cerca in tutti i thread"
+                // ThreadId = null means "search in all threads"
             })
     });
 
@@ -222,13 +222,13 @@ ConsoleHelper.WriteInfo($"Thread ID: {threadId}");
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * LOOP DI CONVERSAZIONE
+ * CONVERSATION LOOP
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
 ConsoleHelper.WriteSeparator("Step 4: Avvio Conversazione");
 
-// Creiamo il thread per questa sessione
+// Create the thread for this session
 AgentThread thread = agent.GetNewThread();
 
 Console.WriteLine();
@@ -268,7 +268,7 @@ while (true)
 
     if (command == "nuovo")
     {
-        // Creiamo un nuovo thread ma manteniamo la stessa memoria
+        // Create a new thread but keep the same memory
         threadId = Guid.NewGuid().ToString();
         thread = agent.GetNewThread();
         Console.WriteLine();
@@ -295,18 +295,18 @@ while (true)
     try
     {
         /*
-         * COSA SUCCEDE DURANTE L'INVOCAZIONE:
+         * WHAT HAPPENS DURING INVOCATION:
          *
-         * 1. Il messaggio utente viene processato
+         * 1. The user message is processed
          * 2. ChatHistoryMemoryProvider.InvokingAsync():
-         *    - Genera embedding del messaggio
-         *    - Cerca messaggi simili nel vector store (per userId)
-         *    - Aggiunge i messaggi trovati come contesto
-         * 3. L'LLM riceve: istruzioni + contesto (messaggi precedenti) + messaggio
-         * 4. L'LLM genera la risposta
+         *    - Generates embedding of the message
+         *    - Searches for similar messages in the vector store (by userId)
+         *    - Adds found messages as context
+         * 3. The LLM receives: instructions + context (previous messages) + message
+         * 4. The LLM generates the response
          * 5. ChatHistoryMemoryProvider.InvokedAsync():
-         *    - Salva il nuovo messaggio (user + assistant) nel vector store
-         *    - Con scope (userId, threadId)
+         *    - Saves the new message (user + assistant) to the vector store
+         *    - With scope (userId, threadId)
          */
 
         ConsoleHelper.WriteAgentHeader();
@@ -331,37 +331,37 @@ while (true)
 
 /*
  * ═══════════════════════════════════════════════════════════════════════════════
- * RIEPILOGO CONCETTI APPRESI
+ * SUMMARY OF CONCEPTS LEARNED
  * ═══════════════════════════════════════════════════════════════════════════════
  *
  * 1. EMBEDDINGS:
- *    - Rappresentazione numerica del significato semantico
- *    - Permettono confronti di similarità
- *    - Generati da modelli specializzati (text-embedding-3-*)
+ *    - Numerical representation of semantic meaning
+ *    - Enable similarity comparisons
+ *    - Generated by specialized models (text-embedding-3-*)
  *
  * 2. VECTOR STORE:
- *    - Database per vettori con ricerca per similarità
- *    - InMemoryVectorStore per sviluppo
- *    - Pinecone, Qdrant, etc. per produzione
+ *    - Database for vectors with similarity search
+ *    - InMemoryVectorStore for development
+ *    - Pinecone, Qdrant, etc. for production
  *
  * 3. ChatHistoryMemoryProvider:
- *    - AIContextProvider built-in per memoria semantica
- *    - Salva automaticamente i messaggi
- *    - Recupera messaggi rilevanti
- *    - Configurable con storage/search scope
+ *    - Built-in AIContextProvider for semantic memory
+ *    - Automatically saves messages
+ *    - Retrieves relevant messages
+ *    - Configurable with storage/search scope
  *
  * 4. RAG PATTERN:
- *    - Retrieve: cerca informazioni rilevanti
- *    - Augment: aggiungi al contesto
- *    - Generate: l'LLM usa il contesto
+ *    - Retrieve: search for relevant information
+ *    - Augment: add to context
+ *    - Generate: the LLM uses the context
  *
- * DIFFERENZA DAL PROGETTO 03:
- * - Progetto 03: Estrazione esplicita di fatti (nome, progetto)
- * - Progetto 04: Memoria semantica (trova per similarità)
- * - Entrambi utili! Combinarli in produzione.
+ * DIFFERENCE FROM PROJECT 03:
+ * - Project 03: Explicit extraction of facts (name, project)
+ * - Project 04: Semantic memory (finds by similarity)
+ * - Both useful! Combine them in production.
  *
- * NEL PROSSIMO PROGETTO:
- * - RAG con documenti esterni (knowledge base)
- * - Caricamento e chunking di documenti
- * - TextSearchProvider per ricerca full-text
+ * IN THE NEXT PROJECT:
+ * - RAG with external documents (knowledge base)
+ * - Loading and chunking documents
+ * - TextSearchProvider for full-text search
  */

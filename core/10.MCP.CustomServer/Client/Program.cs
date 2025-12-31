@@ -3,17 +3,17 @@
 // FILE: Program.cs (Client)
 // ============================================================================
 //
-// OBIETTIVO:
-// Client che si connette al nostro MCP Server custom e usa i tool
-// attraverso un agente AI (Microsoft Agent Framework).
+// OBJECTIVE:
+// Client that connects to our custom MCP Server and uses tools
+// through an AI agent (Microsoft Agent Framework).
 //
-// ARCHITETTURA:
+// ARCHITECTURE:
 //
 //    ┌────────────────────────────────────────────────────────────────────┐
-//    │                         CLIENT (questo progetto)                   │
+//    │                         CLIENT (this project)                      │
 //    │                                                                    │
 //    │   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐        │
-//    │   │   OpenAI    │ ──►  │   Agente    │ ──►  │ MCP Client  │        │
+//    │   │   OpenAI    │ ──►  │   Agent     │ ──►  │ MCP Client  │        │
 //    │   │   (LLM)     │      │     AI      │      │  (HTTP)     │        │
 //    │   └─────────────┘      └─────────────┘      └──────┬──────┘        │
 //    └────────────────────────────────────────────────────┼───────────────┘
@@ -26,10 +26,10 @@
 //                                              │   (localhost:5100)  │
 //                                              └─────────────────────┘
 //
-// PREREQUISITO: Avvia prima il Server!
+// PREREQUISITE: Start the Server first!
 //   dotnet run --project core/10.MCP.CustomServer/Server
 //
-// ESEGUI CON: dotnet run --project core/10.MCP.CustomServer/Client
+// RUN WITH: dotnet run --project core/10.MCP.CustomServer/Client
 // ============================================================================
 
 using System.Text;
@@ -51,29 +51,29 @@ public static class Program
         Console.OutputEncoding = Encoding.UTF8;
 
         ConsoleHelper.WriteTitle("10. MCP Custom Server");
-        ConsoleHelper.WriteSubtitle("Client con Agente AI");
+        ConsoleHelper.WriteSubtitle("Client with AI Agent");
 
         // ====================================================================
-        // VERIFICA SERVER
+        // SERVER VERIFICATION
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Verifica Server MCP");
+        ConsoleHelper.WriteSeparator("MCP Server Verification");
 
-        Console.WriteLine($"Tentativo di connessione a: {McpServerUrl}");
+        Console.WriteLine($"Connection attempt to: {McpServerUrl}");
         Console.WriteLine();
-        Console.WriteLine("NOTA: Il server deve essere in esecuzione!");
-        Console.WriteLine("      Esegui prima: dotnet run --project core/10.MCP.CustomServer/Server");
+        Console.WriteLine("NOTE: The server must be running!");
+        Console.WriteLine("      Run first: dotnet run --project core/10.MCP.CustomServer/Server");
         Console.WriteLine();
 
         try
         {
             // ================================================================
-            // CONNESSIONE AL MCP SERVER VIA HTTP
+            // CONNECTION TO MCP SERVER VIA HTTP
             // ================================================================
-            // HttpClientTransport si connette a server MCP via HTTP/SSE
-            // A differenza di StdioClientTransport (processi locali),
-            // questo permette di connettersi a server remoti.
+            // HttpClientTransport connects to MCP server via HTTP/SSE
+            // Unlike StdioClientTransport (local processes),
+            // this allows connecting to remote servers.
 
-            Console.WriteLine("Connessione al MCP Server...");
+            Console.WriteLine("Connecting to MCP Server...");
 
             await using var mcpClient = await McpClient.CreateAsync(
                 new HttpClientTransport(new HttpClientTransportOptions
@@ -83,16 +83,16 @@ public static class Program
                     ConnectionTimeout = TimeSpan.FromSeconds(10)
                 }));
 
-            Console.WriteLine("Connesso!");
+            Console.WriteLine("Connected!");
             Console.WriteLine();
 
             // ================================================================
-            // DISCOVERY DEI TOOL
+            // TOOL DISCOVERY
             // ================================================================
 
             var mcpTools = await mcpClient.ListToolsAsync();
 
-            Console.WriteLine($"Tool disponibili dal server ({mcpTools.Count}):");
+            Console.WriteLine($"Available tools from server ({mcpTools.Count}):");
             foreach (var tool in mcpTools)
             {
                 Console.WriteLine($"   - {tool.Name}: {tool.Description}");
@@ -100,50 +100,50 @@ public static class Program
             Console.WriteLine();
 
             // ================================================================
-            // SETUP OPENAI + AGENTE
+            // OPENAI + AGENT SETUP
             // ================================================================
-            ConsoleHelper.WriteSeparator("Setup Agente AI");
+            ConsoleHelper.WriteSeparator("AI Agent Setup");
 
             var apiKey = ConfigurationHelper.GetOpenAiApiKey();
             var openAiClient = new OpenAIClient(apiKey);
             var chatClient = openAiClient.GetChatClient(ChatModel).AsIChatClient();
 
-            // Creiamo l'agente con i tool MCP
+            // Create the agent with MCP tools
             var agent = chatClient.CreateAIAgent(
                 instructions: """
-                    Sei un assistente utile che può eseguire calcoli matematici
-                    e manipolare stringhe usando i tool disponibili.
+                    You are a helpful assistant that can perform mathematical calculations
+                    and manipulate strings using the available tools.
 
-                    Usa SEMPRE i tool quando l'utente chiede calcoli o operazioni su stringhe.
-                    Rispondi in italiano.
-                    Mostra i risultati in modo chiaro.
+                    ALWAYS use the tools when the user asks for calculations or string operations.
+                    Respond in Italian.
+                    Show the results clearly.
                     """,
                 tools: [.. mcpTools.Cast<AITool>()]);
 
-            Console.WriteLine("Agente AI creato con tool MCP!");
+            Console.WriteLine("AI Agent created with MCP tools!");
             Console.WriteLine();
 
             // ================================================================
-            // CHAT INTERATTIVA
+            // INTERACTIVE CHAT
             // ================================================================
-            ConsoleHelper.WriteSeparator("Chat con Agente");
+            ConsoleHelper.WriteSeparator("Chat with Agent");
 
-            Console.WriteLine("Esempi di comandi:");
-            Console.WriteLine("   - Quanto fa 125 + 37?");
-            Console.WriteLine("   - Calcola il 15% di 200");
-            Console.WriteLine("   - Inverti la stringa 'ciao mondo'");
-            Console.WriteLine("   - Converti 'HELLO WORLD' in minuscolo");
-            Console.WriteLine("   - Quanti caratteri ha la frase 'test di conteggio'?");
-            Console.WriteLine("   - Crea uno slug da 'Articolo di Prova!'");
+            Console.WriteLine("Example commands:");
+            Console.WriteLine("   - How much is 125 + 37?");
+            Console.WriteLine("   - Calculate 15% of 200");
+            Console.WriteLine("   - Reverse the string 'hello world'");
+            Console.WriteLine("   - Convert 'HELLO WORLD' to lowercase");
+            Console.WriteLine("   - How many characters does the phrase 'test count' have?");
+            Console.WriteLine("   - Create a slug from 'Test Article!'");
             Console.WriteLine();
-            Console.WriteLine("Scrivi 'exit' per uscire.");
+            Console.WriteLine("Type 'exit' to quit.");
             Console.WriteLine();
 
             var thread = agent.GetNewThread();
 
             while (true)
             {
-                Console.Write("Tu: ");
+                Console.Write("You: ");
                 var input = Console.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(input))
@@ -153,7 +153,7 @@ public static class Program
                     break;
 
                 Console.WriteLine();
-                Console.Write("Agente: ");
+                Console.Write("Agent: ");
 
                 try
                 {
@@ -164,7 +164,7 @@ public static class Program
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"\nErrore: {ex.Message}");
+                    Console.WriteLine($"\nError: {ex.Message}");
                 }
 
                 Console.WriteLine();
@@ -173,28 +173,28 @@ public static class Program
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Errore di connessione: {ex.Message}");
+            Console.WriteLine($"Connection error: {ex.Message}");
             Console.WriteLine();
-            Console.WriteLine("Assicurati che il server MCP sia in esecuzione:");
+            Console.WriteLine("Make sure the MCP server is running:");
             Console.WriteLine("   dotnet run --project core/10.MCP.CustomServer/Server");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Errore: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
         }
 
         // ====================================================================
-        // RIEPILOGO
+        // SUMMARY
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Riepilogo");
+        ConsoleHelper.WriteSeparator("Summary");
 
-        Console.WriteLine("In questo progetto hai imparato:");
-        Console.WriteLine("   1. Creare un MCP Server custom in C#");
-        Console.WriteLine("   2. Definire tool con [McpServerTool] e [McpServerToolType]");
-        Console.WriteLine("   3. Esporre tool via HTTP usando AddMcpServer().WithHttpTransport()");
-        Console.WriteLine("   4. Connettersi al server con HttpClientTransport");
-        Console.WriteLine("   5. Integrare tool MCP con agenti Microsoft Agent Framework");
+        Console.WriteLine("In this project you learned:");
+        Console.WriteLine("   1. Create a custom MCP Server in C#");
+        Console.WriteLine("   2. Define tools with [McpServerTool] and [McpServerToolType]");
+        Console.WriteLine("   3. Expose tools via HTTP using AddMcpServer().WithHttpTransport()");
+        Console.WriteLine("   4. Connect to the server with HttpClientTransport");
+        Console.WriteLine("   5. Integrate MCP tools with Microsoft Agent Framework agents");
         Console.WriteLine();
-        Console.WriteLine("Questo completa il ciclo: hai creato sia il SERVER che il CLIENT MCP!");
+        Console.WriteLine("This completes the cycle: you have created both the MCP SERVER and CLIENT!");
     }
 }

@@ -1,36 +1,36 @@
 // ============================================================================
-// 11. RAG CON VECTOR STORES REALI
+// 11. RAG WITH REAL VECTOR STORES
 // FILE: VectorStores/PostgresDemo.cs
 // ============================================================================
 //
-// DEMO RAG CON POSTGRESQL + PGVECTOR
+// RAG DEMO WITH POSTGRESQL + PGVECTOR
 //
-// PostgreSQL con l'estensione pgvector è la soluzione open source più
-// popolare per aggiungere capacità di ricerca vettoriale a un database
-// relazionale.
+// PostgreSQL with the pgvector extension is the most popular open source
+// solution for adding vector search capabilities to a relational
+// database.
 //
-// PERCHÉ PGVECTOR È COSÌ POPOLARE:
-// - Open source e gratuito (nessuna licenza)
-// - PostgreSQL è già ampiamente usato e conosciuto
-// - Estensione matura con community attiva
-// - Supportato da AWS RDS, Azure, Google Cloud, Supabase, Neon, etc.
-// - Permette di combinare query SQL tradizionali con ricerca vettoriale
+// WHY PGVECTOR IS SO POPULAR:
+// - Open source and free (no license)
+// - PostgreSQL is already widely used and known
+// - Mature extension with active community
+// - Supported by AWS RDS, Azure, Google Cloud, Supabase, Neon, etc.
+// - Allows combining traditional SQL queries with vector search
 //
-// TIPI DI INDICE SUPPORTATI:
-// - HNSW: Hierarchical Navigable Small World (veloce, approssimato)
-// - IVFFlat: Inverted File con Flat (buono per dataset molto grandi)
+// SUPPORTED INDEX TYPES:
+// - HNSW: Hierarchical Navigable Small World (fast, approximate)
+// - IVFFlat: Inverted File with Flat (good for very large datasets)
 //
 // NUGET PACKAGE:
 // - Microsoft.SemanticKernel.Connectors.PgVector
-// - NOTA: Rinominato da "Connectors.Postgres" a maggio 2025
+// - NOTE: Renamed from "Connectors.Postgres" in May 2025
 //
-// PREREQUISITI:
-// 1. Docker Desktop in esecuzione
-// 2. Container PostgreSQL avviato: docker compose up -d postgres
+// PREREQUISITES:
+// 1. Docker Desktop running
+// 2. PostgreSQL container started: docker compose up -d postgres
 //
-// CONNESSIONE:
+// CONNECTION:
 // - Host: localhost
-// - Port: 5433 (per evitare conflitti con PostgreSQL locale)
+// - Port: 5433 (to avoid conflicts with local PostgreSQL)
 // - Database: vectorstore
 // - User: postgres
 // - Password: VectorStore123!
@@ -48,12 +48,12 @@ using OpenAI;
 namespace _11.RAG.VectorStores.VectorStores;
 
 /// <summary>
-/// Dimostra l'utilizzo di PostgreSQL + pgvector come vector store per RAG.
+/// Demonstrates using PostgreSQL + pgvector as a vector store for RAG.
 /// </summary>
 public static class PostgresDemo
 {
-    // Configurazione
-    // NOTA: Porta 5433 per evitare conflitti con PostgreSQL locale (5432)
+    // Configuration
+    // NOTE: Port 5433 to avoid conflicts with local PostgreSQL (5432)
     private const string ConnectionString =
         "Host=localhost;Port=5433;Database=vectorstore;Username=postgres;Password=VectorStore123!";
 
@@ -63,73 +63,73 @@ public static class PostgresDemo
 
     public static async Task RunAsync()
     {
-        ConsoleHelper.WriteTitle("RAG con PostgreSQL + pgvector");
+        ConsoleHelper.WriteTitle("RAG with PostgreSQL + pgvector");
 
         // ====================================================================
-        // STEP 1: VERIFICA CONNESSIONE A POSTGRESQL
+        // STEP 1: VERIFY CONNECTION TO POSTGRESQL
         // ====================================================================
-        ConsoleHelper.WriteSeparator("1. Connessione a PostgreSQL");
+        ConsoleHelper.WriteSeparator("1. Connection to PostgreSQL");
 
-        Console.WriteLine("Connessione a PostgreSQL (Docker, porta 5433)...");
+        Console.WriteLine("Connecting to PostgreSQL (Docker, port 5433)...");
         Console.WriteLine();
 
         NpgsqlDataSource dataSource;
 
         try
         {
-            // Creiamo un NpgsqlDataSource per gestire le connessioni
+            // Create an NpgsqlDataSource to manage connections
             var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
 
-            // IMPORTANTE: Registriamo il tipo vector per pgvector
-            // Questo permette a Npgsql di gestire correttamente i vettori
+            // IMPORTANT: Register the vector type for pgvector
+            // This allows Npgsql to properly handle vectors
             dataSourceBuilder.UseVector();
 
             dataSource = dataSourceBuilder.Build();
 
-            // Test connessione
+            // Test connection
             await using var testConn = await dataSource.OpenConnectionAsync();
 
-            // Verifica versione PostgreSQL
+            // Verify PostgreSQL version
             await using var versionCmd = testConn.CreateCommand();
             versionCmd.CommandText = "SELECT version()";
             var version = await versionCmd.ExecuteScalarAsync();
 
-            Console.WriteLine("PostgreSQL raggiungibile!");
-            Console.WriteLine($"Versione: {TruncateVersion(version?.ToString() ?? "")}");
+            Console.WriteLine("PostgreSQL reachable!");
+            Console.WriteLine($"Version: {TruncateVersion(version?.ToString() ?? "")}");
             Console.WriteLine();
 
-            // Verifica che pgvector sia installato
+            // Verify that pgvector is installed
             await using var extensionCmd = testConn.CreateCommand();
             extensionCmd.CommandText = "SELECT extversion FROM pg_extension WHERE extname = 'vector'";
             var pgvectorVersion = await extensionCmd.ExecuteScalarAsync();
 
             if (pgvectorVersion != null)
             {
-                Console.WriteLine($"pgvector installato! Versione: {pgvectorVersion}");
+                Console.WriteLine($"pgvector installed! Version: {pgvectorVersion}");
             }
             else
             {
-                // Prova a creare l'estensione
-                Console.WriteLine("pgvector non trovato, tentativo di installazione...");
+                // Try to create the extension
+                Console.WriteLine("pgvector not found, attempting to install...");
                 await using var createExtCmd = testConn.CreateCommand();
                 createExtCmd.CommandText = "CREATE EXTENSION IF NOT EXISTS vector";
                 await createExtCmd.ExecuteNonQueryAsync();
-                Console.WriteLine("Estensione pgvector creata con successo!");
+                Console.WriteLine("pgvector extension created successfully!");
             }
             Console.WriteLine();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERRORE: Impossibile connettersi a PostgreSQL!");
-            Console.WriteLine($"Dettaglio: {ex.Message}");
+            Console.WriteLine($"ERROR: Unable to connect to PostgreSQL!");
+            Console.WriteLine($"Detail: {ex.Message}");
             Console.WriteLine();
-            Console.WriteLine("Assicurati che:");
-            Console.WriteLine("1. Docker Desktop sia in esecuzione");
-            Console.WriteLine("2. Il container PostgreSQL sia avviato:");
+            Console.WriteLine("Make sure that:");
+            Console.WriteLine("1. Docker Desktop is running");
+            Console.WriteLine("2. The PostgreSQL container is started:");
             Console.WriteLine("   docker compose up -d postgres");
-            Console.WriteLine("3. Attendi qualche secondo che PostgreSQL sia pronto");
+            Console.WriteLine("3. Wait a few seconds for PostgreSQL to be ready");
             Console.WriteLine();
-            Console.WriteLine("Premi un tasto per tornare al menu...");
+            Console.WriteLine("Press any key to return to menu...");
             Console.ReadKey();
             return;
         }
@@ -147,82 +147,82 @@ public static class PostgresDemo
             .AsIEmbeddingGenerator();
 
         Console.WriteLine($"Embedding model: {EmbeddingModel}");
-        Console.WriteLine("Embedding generator pronto!");
+        Console.WriteLine("Embedding generator ready!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 3: CREAZIONE VECTOR STORE E COLLECTION
+        // STEP 3: CREATE VECTOR STORE AND COLLECTION
         // ====================================================================
-        ConsoleHelper.WriteSeparator("3. Creazione Vector Store");
+        ConsoleHelper.WriteSeparator("3. Creating Vector Store");
 
-        // PostgresVectorStore implementa IVectorStore
-        // Usa tabelle PostgreSQL con colonne VECTOR per memorizzare gli embedding
-        // Nota: la nuova API (maggio 2025) accetta direttamente la connection string
+        // PostgresVectorStore implements IVectorStore
+        // Uses PostgreSQL tables with VECTOR columns to store embeddings
+        // Note: the new API (May 2025) accepts the connection string directly
         var vectorStore = new PostgresVectorStore(ConnectionString);
 
-        // Otteniamo la collezione (sarà una tabella in PostgreSQL)
+        // Get the collection (will be a table in PostgreSQL)
         var collection = vectorStore.GetCollection<Guid, DocumentChunkPostgres>(CollectionName);
 
-        // Crea la tabella se non esiste
-        // La struttura viene inferita dagli attributi [VectorStore*] della classe
+        // Create the table if it doesn't exist
+        // The structure is inferred from the [VectorStore*] attributes of the class
         await collection.EnsureCollectionExistsAsync();
 
-        Console.WriteLine($"Collezione '{CollectionName}' pronta!");
-        Console.WriteLine("(Corrisponde a una tabella PostgreSQL con colonna VECTOR)");
+        Console.WriteLine($"Collection '{CollectionName}' ready!");
+        Console.WriteLine("(Corresponds to a PostgreSQL table with VECTOR column)");
         Console.WriteLine();
 
-        // Mostra la struttura della tabella
+        // Show the table structure
         await ShowTableStructureAsync(dataSource);
 
         // ====================================================================
-        // STEP 4: INDICIZZAZIONE DOCUMENTI
+        // STEP 4: INDEX DOCUMENTS
         // ====================================================================
-        ConsoleHelper.WriteSeparator("4. Indicizzazione Documenti");
+        ConsoleHelper.WriteSeparator("4. Indexing Documents");
 
         var chunks = SampleDocuments.GetChunksForPostgres().ToList();
-        Console.WriteLine($"Documenti da indicizzare: {SampleDocuments.Documents.Length}");
-        Console.WriteLine($"Chunk totali: {chunks.Count}");
+        Console.WriteLine($"Documents to index: {SampleDocuments.Documents.Length}");
+        Console.WriteLine($"Total chunks: {chunks.Count}");
         Console.WriteLine();
 
-        Console.WriteLine("Generazione embedding...");
+        Console.WriteLine("Generating embeddings...");
 
-        // Generiamo gli embedding per tutti i chunk in batch
+        // Generate embeddings for all chunks in batch
         var textsForEmbedding = chunks.Select(c => c.GetTextForEmbedding()).ToList();
         var embeddings = await embeddingGenerator.GenerateAsync(textsForEmbedding);
 
-        // Associamo ogni embedding al rispettivo chunk
+        // Associate each embedding with its respective chunk
         for (int i = 0; i < chunks.Count; i++)
         {
             chunks[i].Embedding = embeddings[i].Vector;
         }
 
-        Console.WriteLine($"   Generati {embeddings.Count} embedding!");
+        Console.WriteLine($"   Generated {embeddings.Count} embeddings!");
         Console.WriteLine();
 
-        Console.WriteLine("Inserimento nel vector store...");
+        Console.WriteLine("Inserting into vector store...");
 
         var count = 0;
         foreach (var chunk in chunks)
         {
             await collection.UpsertAsync(chunk);
             count++;
-            Console.Write($"\r   Chunk inseriti: {count}/{chunks.Count}");
+            Console.Write($"\r   Chunks inserted: {count}/{chunks.Count}");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Indicizzazione completata!");
+        Console.WriteLine("Indexing completed!");
         Console.WriteLine();
 
         // ====================================================================
-        // STEP 5: RICERCA SEMANTICA
+        // STEP 5: SEMANTIC SEARCH
         // ====================================================================
-        ConsoleHelper.WriteSeparator("5. Test Ricerca Semantica");
+        ConsoleHelper.WriteSeparator("5. Semantic Search Test");
 
         var testQueries = new[]
         {
-            "Come funziona LINQ?",
-            "Cosa sono gli indici in un database?",
-            "Come si implementa RAG?"
+            "How does LINQ work?",
+            "What are indexes in a database?",
+            "How do you implement RAG?"
         };
 
         foreach (var query in testQueries)
@@ -239,7 +239,7 @@ public static class PostgresDemo
 
             var searchResults = collection.SearchAsync(queryEmbedding.Vector, 3, searchOptions);
 
-            Console.WriteLine("Risultati:");
+            Console.WriteLine("Results:");
             await foreach (var result in searchResults)
             {
                 Console.WriteLine($"   [{result.Score:F4}] {result.Record.Title} (chunk {result.Record.ChunkIndex})");
@@ -250,20 +250,20 @@ public static class PostgresDemo
         }
 
         // ====================================================================
-        // STEP 6: RAG COMPLETO CON LLM
+        // STEP 6: COMPLETE RAG WITH LLM
         // ====================================================================
-        ConsoleHelper.WriteSeparator("6. RAG Completo con LLM");
+        ConsoleHelper.WriteSeparator("6. Complete RAG with LLM");
 
         var chatClient = openAiClient.GetChatClient(ChatModel).AsIChatClient();
 
-        Console.WriteLine("Ora puoi fare domande sui documenti indicizzati.");
-        Console.WriteLine("I chunk rilevanti verranno recuperati da PostgreSQL.");
-        Console.WriteLine("Scrivi 'exit' per tornare al menu.");
+        Console.WriteLine("You can now ask questions about the indexed documents.");
+        Console.WriteLine("Relevant chunks will be retrieved from PostgreSQL.");
+        Console.WriteLine("Type 'exit' to return to menu.");
         Console.WriteLine();
 
         while (true)
         {
-            Console.Write("Domanda: ");
+            Console.Write("Question: ");
             var question = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(question))
@@ -284,7 +284,7 @@ public static class PostgresDemo
             var relevantChunks = collection.SearchAsync(questionEmbedding.Vector, 3, searchOptions);
 
             var context = new List<string>();
-            Console.WriteLine("Chunk recuperati da PostgreSQL:");
+            Console.WriteLine("Chunks retrieved from PostgreSQL:");
             await foreach (var result in relevantChunks)
             {
                 context.Add(result.Record.Content);
@@ -293,18 +293,18 @@ public static class PostgresDemo
             Console.WriteLine();
 
             var ragPrompt = $"""
-                Usa SOLO le seguenti informazioni per rispondere alla domanda.
-                Se le informazioni non sono sufficienti, dillo chiaramente.
+                Use ONLY the following information to answer the question.
+                If the information is not sufficient, say so clearly.
 
-                CONTESTO:
+                CONTEXT:
                 {string.Join("\n\n---\n\n", context)}
 
-                DOMANDA: {question}
+                QUESTION: {question}
 
-                RISPOSTA:
+                ANSWER:
                 """;
 
-            Console.Write("Risposta: ");
+            Console.Write("Answer: ");
             await foreach (var chunk in chatClient.GetStreamingResponseAsync(ragPrompt))
             {
                 Console.Write(chunk);
@@ -314,35 +314,35 @@ public static class PostgresDemo
         }
 
         // ====================================================================
-        // STEP 7: PULIZIA (OPZIONALE)
+        // STEP 7: CLEANUP (OPTIONAL)
         // ====================================================================
-        ConsoleHelper.WriteSeparator("7. Pulizia");
+        ConsoleHelper.WriteSeparator("7. Cleanup");
 
-        Console.Write("Vuoi eliminare la tabella? (s/n): ");
+        Console.Write("Do you want to delete the table? (y/n): ");
         var delete = Console.ReadLine();
 
-        if (delete?.Equals("s", StringComparison.OrdinalIgnoreCase) == true)
+        if (delete?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
         {
             await collection.EnsureCollectionDeletedAsync();
-            Console.WriteLine($"Tabella '{CollectionName}' eliminata!");
+            Console.WriteLine($"Table '{CollectionName}' deleted!");
         }
         else
         {
-            Console.WriteLine("Tabella mantenuta per usi futuri.");
-            Console.WriteLine("Puoi esaminarla con pgAdmin o psql.");
+            Console.WriteLine("Table kept for future use.");
+            Console.WriteLine("You can examine it with pgAdmin or psql.");
         }
 
         Console.WriteLine();
-        Console.WriteLine("Premi un tasto per tornare al menu...");
+        Console.WriteLine("Press any key to return to menu...");
         Console.ReadKey();
     }
 
     /// <summary>
-    /// Mostra la struttura della tabella creata.
+    /// Shows the structure of the created table.
     /// </summary>
     private static async Task ShowTableStructureAsync(NpgsqlDataSource dataSource)
     {
-        Console.WriteLine("Struttura tabella PostgreSQL:");
+        Console.WriteLine("PostgreSQL table structure:");
         Console.WriteLine();
 
         try
@@ -364,7 +364,7 @@ public static class PostgresDemo
                 var dataType = reader.GetString(1);
                 var maxLen = reader.IsDBNull(2) ? "" : $"({reader.GetInt32(2)})";
 
-                // Evidenzia la colonna VECTOR
+                // Highlight the VECTOR column
                 if (dataType == "USER-DEFINED")
                 {
                     Console.WriteLine($"   - {colName}: vector(1536)  <-- embedding!");
@@ -377,7 +377,7 @@ public static class PostgresDemo
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"   Impossibile leggere struttura: {ex.Message}");
+            Console.WriteLine($"   Unable to read structure: {ex.Message}");
         }
 
         Console.WriteLine();

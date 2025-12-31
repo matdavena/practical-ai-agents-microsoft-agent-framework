@@ -3,29 +3,29 @@
 // LEARNING PATH: MICROSOFT AGENT FRAMEWORK
 // ============================================================================
 //
-// OBIETTIVO DI QUESTO PROGETTO:
-// Imparare le API NATIVE del framework per l'orchestrazione multi-agente.
-// Confronto diretto con il progetto 07 (implementazione custom).
+// OBJECTIVE OF THIS PROJECT:
+// Learn the NATIVE APIs of the framework for multi-agent orchestration.
+// Direct comparison with project 07 (custom implementation).
 //
 // ============================================================================
-// CONFRONTO: CUSTOM vs NATIVE
+// COMPARISON: CUSTOM vs NATIVE
 // ============================================================================
 //
-// PROGETTO 07 (Custom):                    PROGETTO 08 (Native):
+// PROJECT 07 (Custom):                    PROJECT 08 (Native):
 // ─────────────────────────────────────────────────────────────────────────────
-// foreach + await manuale                  AgentWorkflowBuilder.BuildSequential()
-// Task.WhenAll manuale                     AgentWorkflowBuilder.BuildConcurrent()
-// if/switch per routing                    HandoffsWorkflowBuilder con AIFunction
-// Non implementato                         GroupChatWorkflowBuilder + Manager
+// foreach + manual await                  AgentWorkflowBuilder.BuildSequential()
+// Manual Task.WhenAll                     AgentWorkflowBuilder.BuildConcurrent()
+// if/switch for routing                   HandoffsWorkflowBuilder with AIFunction
+// Not implemented                         GroupChatWorkflowBuilder + Manager
 //
-// VANTAGGI DELLE API NATIVE:
-// - Codice più conciso e dichiarativo
-// - Gestione errori built-in
-// - Streaming degli eventi
-// - Checkpointing e resume
-// - Estensibilità via custom Manager
+// ADVANTAGES OF NATIVE APIs:
+// - More concise and declarative code
+// - Built-in error handling
+// - Event streaming
+// - Checkpointing and resume
+// - Extensibility via custom Manager
 //
-// ESEGUI CON: dotnet run --project core/08.Workflows.Native
+// RUN WITH: dotnet run --project core/08.Workflows.Native
 // ============================================================================
 
 using System.Text;
@@ -41,7 +41,7 @@ namespace Workflows.Native;
 public static class Program
 {
     // ========================================================================
-    // CONFIGURAZIONE
+    // CONFIGURATION
     // ========================================================================
 
     private const string ChatModel = "gpt-4o-mini";
@@ -55,7 +55,7 @@ public static class Program
         Console.OutputEncoding = Encoding.UTF8;
 
         ConsoleHelper.WriteTitle("08. Workflows Native");
-        ConsoleHelper.WriteSubtitle("API Native del Framework");
+        ConsoleHelper.WriteSubtitle("Framework Native APIs");
 
         // ====================================================================
         // SETUP
@@ -66,22 +66,22 @@ public static class Program
         var openAiClient = new OpenAIClient(apiKey);
         var chatClient = openAiClient.GetChatClient(ChatModel).AsIChatClient();
 
-        Console.WriteLine("Client inizializzato.");
+        Console.WriteLine("Client initialized.");
         Console.WriteLine();
 
         // ====================================================================
-        // MENU WORKFLOW
+        // WORKFLOW MENU
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Scegli Workflow Nativo");
+        ConsoleHelper.WriteSeparator("Choose Native Workflow");
 
         Console.WriteLine();
-        Console.WriteLine("Workflow disponibili (API Native):");
-        Console.WriteLine("   [1] Sequential  - BuildSequential(): pipeline di agenti");
-        Console.WriteLine("   [2] Concurrent  - BuildConcurrent(): agenti in parallelo");
-        Console.WriteLine("   [3] Handoffs    - HandoffsBuilder: routing con function call");
-        Console.WriteLine("   [4] GroupChat   - GroupChatBuilder: conversazione di gruppo");
+        Console.WriteLine("Available workflows (Native API):");
+        Console.WriteLine("   [1] Sequential  - BuildSequential(): agent pipeline");
+        Console.WriteLine("   [2] Concurrent  - BuildConcurrent(): agents in parallel");
+        Console.WriteLine("   [3] Handoffs    - HandoffsBuilder: routing with function call");
+        Console.WriteLine("   [4] GroupChat   - GroupChatBuilder: group conversation");
         Console.WriteLine();
-        Console.Write("Scegli (1-4): ");
+        Console.Write("Choose (1-4): ");
 
         var choice = Console.ReadLine()?.Trim();
 
@@ -100,33 +100,33 @@ public static class Program
                 await RunGroupChatWorkflow(chatClient);
                 break;
             default:
-                Console.WriteLine("Scelta non valida, eseguo Sequential...");
+                Console.WriteLine("Invalid choice, running Sequential...");
                 await RunSequentialWorkflow(chatClient);
                 break;
         }
 
         // ====================================================================
-        // RIEPILOGO
+        // SUMMARY
         // ====================================================================
-        ConsoleHelper.WriteSeparator("Riepilogo");
+        ConsoleHelper.WriteSeparator("Summary");
 
-        Console.WriteLine("In questo progetto hai imparato:");
-        Console.WriteLine("   1. AgentWorkflowBuilder - Factory per workflow comuni");
-        Console.WriteLine("   2. BuildSequential() - Pipeline di agenti in serie");
-        Console.WriteLine("   3. BuildConcurrent() - Fan-out/fan-in parallelo");
-        Console.WriteLine("   4. HandoffsBuilder - Routing dinamico con AIFunction");
-        Console.WriteLine("   5. GroupChatBuilder - Chat multi-agente con Manager");
-        Console.WriteLine("   6. InProcessExecution.StreamAsync() - Esecuzione streaming");
-        Console.WriteLine("   7. WorkflowEvent - Eventi per monitorare l'esecuzione");
+        Console.WriteLine("In this project you learned:");
+        Console.WriteLine("   1. AgentWorkflowBuilder - Factory for common workflows");
+        Console.WriteLine("   2. BuildSequential() - Agent pipeline in series");
+        Console.WriteLine("   3. BuildConcurrent() - Parallel fan-out/fan-in");
+        Console.WriteLine("   4. HandoffsBuilder - Dynamic routing with AIFunction");
+        Console.WriteLine("   5. GroupChatBuilder - Multi-agent chat with Manager");
+        Console.WriteLine("   6. InProcessExecution.StreamAsync() - Streaming execution");
+        Console.WriteLine("   7. WorkflowEvent - Events to monitor execution");
         Console.WriteLine();
-        Console.WriteLine("Confronta con il progetto 07 per vedere la differenza!");
+        Console.WriteLine("Compare with project 07 to see the difference!");
     }
 
     // ========================================================================
-    // 1. SEQUENTIAL WORKFLOW (NATIVO)
+    // 1. SEQUENTIAL WORKFLOW (NATIVE)
     // ========================================================================
     //
-    // CONFRONTO CON PROGETTO 07:
+    // COMPARISON WITH PROJECT 07:
     //
     // CUSTOM (07):                          NATIVE (08):
     // ─────────────────────────────────────────────────────────────────────
@@ -139,22 +139,22 @@ public static class Program
     //     currentInput = response;
     // }
     //
-    // Il framework gestisce automaticamente il passaggio del contesto!
+    // The framework automatically handles context passing!
     // ========================================================================
 
     private static async Task RunSequentialWorkflow(IChatClient chatClient)
     {
-        ConsoleHelper.WriteSeparator("Workflow: Sequential (Nativo)");
+        ConsoleHelper.WriteSeparator("Workflow: Sequential (Native)");
 
         Console.WriteLine();
-        Console.WriteLine("COME FUNZIONA BuildSequential():");
-        Console.WriteLine("   1. Crea una pipeline di agenti");
-        Console.WriteLine("   2. L'output di ogni agente diventa input del successivo");
-        Console.WriteLine("   3. Il framework gestisce il passaggio automatico del contesto");
+        Console.WriteLine("HOW BuildSequential() WORKS:");
+        Console.WriteLine("   1. Creates an agent pipeline");
+        Console.WriteLine("   2. Each agent's output becomes the next one's input");
+        Console.WriteLine("   3. The framework handles automatic context passing");
         Console.WriteLine();
 
-        // Creiamo agenti specializzati per una pipeline di traduzione
-        // Questo esempio traduce: Italiano -> Inglese -> Francese -> Spagnolo
+        // We create specialized agents for a translation pipeline
+        // This example translates: Italian -> English -> French -> Spanish
         var agents = new[]
         {
             CreateTranslationAgent("English", chatClient),
@@ -163,13 +163,13 @@ public static class Program
         };
 
         // ================================================================
-        // API NATIVA: BuildSequential
+        // NATIVE API: BuildSequential
         // ================================================================
-        // Una sola riga per creare il workflow!
-        // Confronta con il ciclo foreach manuale del progetto 07
+        // One line to create the workflow!
+        // Compare with the manual foreach loop from project 07
         var workflow = AgentWorkflowBuilder.BuildSequential(agents);
 
-        Console.Write("Inserisci una frase in italiano: ");
+        Console.Write("Enter a sentence in Italian: ");
         var input = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(input))
         {
@@ -180,41 +180,41 @@ public static class Program
         Console.WriteLine($"Input: {input}");
         Console.WriteLine();
 
-        // Esegui con streaming degli eventi
+        // Execute with event streaming
         var messages = new List<ChatMessage> { new(ChatRole.User, input) };
         await RunWorkflowWithEvents(workflow, messages);
     }
 
     // ========================================================================
-    // 2. CONCURRENT WORKFLOW (NATIVO)
+    // 2. CONCURRENT WORKFLOW (NATIVE)
     // ========================================================================
     //
-    // CONFRONTO CON PROGETTO 07:
+    // COMPARISON WITH PROJECT 07:
     //
     // CUSTOM (07):                          NATIVE (08):
     // ─────────────────────────────────────────────────────────────────────
     // var tasks = new List<Task>();          var workflow = AgentWorkflowBuilder
     // foreach (var role in roles)                .BuildConcurrent(agents);
     // {
-    //     tasks.Add(Task.Run(async () =>     // Il framework gestisce:
-    //         await member.AskAsync(prompt))); // - Fan-out automatico
-    // }                                       // - Aggregazione risultati
-    // await Task.WhenAll(tasks);              // - Gestione errori
+    //     tasks.Add(Task.Run(async () =>     // The framework handles:
+    //         await member.AskAsync(prompt))); // - Automatic fan-out
+    // }                                       // - Result aggregation
+    // await Task.WhenAll(tasks);              // - Error handling
     //
     // ========================================================================
 
     private static async Task RunConcurrentWorkflow(IChatClient chatClient)
     {
-        ConsoleHelper.WriteSeparator("Workflow: Concurrent (Nativo)");
+        ConsoleHelper.WriteSeparator("Workflow: Concurrent (Native)");
 
         Console.WriteLine();
-        Console.WriteLine("COME FUNZIONA BuildConcurrent():");
-        Console.WriteLine("   1. Tutti gli agenti ricevono lo stesso input");
-        Console.WriteLine("   2. Lavorano in parallelo (fan-out)");
-        Console.WriteLine("   3. I risultati vengono aggregati (fan-in)");
+        Console.WriteLine("HOW BuildConcurrent() WORKS:");
+        Console.WriteLine("   1. All agents receive the same input");
+        Console.WriteLine("   2. They work in parallel (fan-out)");
+        Console.WriteLine("   3. Results are aggregated (fan-in)");
         Console.WriteLine();
 
-        // Creiamo 3 agenti che traducono in parallelo
+        // We create 3 agents that translate in parallel
         var agents = new[]
         {
             CreateTranslationAgent("French", chatClient),
@@ -223,12 +223,12 @@ public static class Program
         };
 
         // ================================================================
-        // API NATIVA: BuildConcurrent
+        // NATIVE API: BuildConcurrent
         // ================================================================
-        // Fan-out automatico a tutti gli agenti!
+        // Automatic fan-out to all agents!
         var workflow = AgentWorkflowBuilder.BuildConcurrent(agents);
 
-        Console.Write("Inserisci una frase da tradurre in 3 lingue: ");
+        Console.Write("Enter a sentence to translate into 3 languages: ");
         var input = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(input))
         {
@@ -244,10 +244,10 @@ public static class Program
     }
 
     // ========================================================================
-    // 3. HANDOFFS WORKFLOW (NATIVO)
+    // 3. HANDOFFS WORKFLOW (NATIVE)
     // ========================================================================
     //
-    // CONFRONTO CON PROGETTO 07:
+    // COMPARISON WITH PROJECT 07:
     //
     // CUSTOM (07):                          NATIVE (08):
     // ─────────────────────────────────────────────────────────────────────
@@ -257,105 +257,105 @@ public static class Program
     // if (analysis.Contains("ARCHITECT"))        .WithHandoffs(specialists, triage)
     //     return Architect;                      .Build();
     // else if (analysis.Contains("DEVELOPER"))
-    //     return Developer;                  // Il framework:
-    // ...                                    // - Inietta AIFunction per handoff
-    //                                        // - Intercetta le chiamate
-    // var result = await selected            // - Ruota automaticamente
+    //     return Developer;                  // The framework:
+    // ...                                    // - Injects AIFunction for handoff
+    //                                        // - Intercepts calls
+    // var result = await selected            // - Routes automatically
     //     .AskAsync(request);
     //
-    // VANTAGGIO: Il routing è dichiarativo e l'agente decide via function call!
+    // ADVANTAGE: Routing is declarative and the agent decides via function call!
     // ========================================================================
 
     private static async Task RunHandoffsWorkflow(IChatClient chatClient)
     {
-        ConsoleHelper.WriteSeparator("Workflow: Handoffs (Nativo)");
+        ConsoleHelper.WriteSeparator("Workflow: Handoffs (Native)");
 
         Console.WriteLine();
-        Console.WriteLine("COME FUNZIONA HandoffsBuilder:");
-        Console.WriteLine("   1. Un agente 'triage' riceve la richiesta");
-        Console.WriteLine("   2. Il framework inietta AIFunction per ogni handoff possibile");
-        Console.WriteLine("   3. L'agente chiama handoff_to_<agent_id> per trasferire");
-        Console.WriteLine("   4. Il framework ruota automaticamente all'agente giusto");
+        Console.WriteLine("HOW HandoffsBuilder WORKS:");
+        Console.WriteLine("   1. A 'triage' agent receives the request");
+        Console.WriteLine("   2. The framework injects AIFunction for each possible handoff");
+        Console.WriteLine("   3. The agent calls handoff_to_<agent_id> to transfer");
+        Console.WriteLine("   4. The framework automatically routes to the right agent");
         Console.WriteLine();
 
-        // Creiamo agenti specialisti
+        // We create specialist agents
         var mathTutor = new ChatClientAgent(
             chatClient,
             """
-            Sei un tutor di matematica esperto.
-            Spieghi concetti matematici in modo chiaro con esempi.
-            Rispondi SOLO a domande di matematica.
-            Se la domanda non è di matematica, chiedi di essere trasferito.
+            You are an expert math tutor.
+            You explain mathematical concepts clearly with examples.
+            You ONLY answer math questions.
+            If the question is not about math, ask to be transferred.
             """,
             "math_tutor",
-            "Specialista in matematica");
+            "Math specialist");
 
         var historyTutor = new ChatClientAgent(
             chatClient,
             """
-            Sei un tutor di storia esperto.
-            Spieghi eventi storici con contesto e date importanti.
-            Rispondi SOLO a domande di storia.
-            Se la domanda non è di storia, chiedi di essere trasferito.
+            You are an expert history tutor.
+            You explain historical events with context and important dates.
+            You ONLY answer history questions.
+            If the question is not about history, ask to be transferred.
             """,
             "history_tutor",
-            "Specialista in storia");
+            "History specialist");
 
         var codingTutor = new ChatClientAgent(
             chatClient,
             """
-            Sei un tutor di programmazione esperto in C# e .NET.
-            Spieghi concetti di coding con esempi pratici.
-            Rispondi SOLO a domande di programmazione.
-            Se la domanda non è di coding, chiedi di essere trasferito.
+            You are an expert programming tutor in C# and .NET.
+            You explain coding concepts with practical examples.
+            You ONLY answer programming questions.
+            If the question is not about coding, ask to be transferred.
             """,
             "coding_tutor",
-            "Specialista in programmazione");
+            "Programming specialist");
 
         var triageAgent = new ChatClientAgent(
             chatClient,
             """
-            Sei un agente di smistamento per un servizio di tutoring.
-            Analizza la domanda dell'utente e trasferiscila allo specialista appropriato.
+            You are a triage agent for a tutoring service.
+            Analyze the user's question and transfer it to the appropriate specialist.
 
-            Specialisti disponibili:
-            - math_tutor: per domande di matematica
-            - history_tutor: per domande di storia
-            - coding_tutor: per domande di programmazione
+            Available specialists:
+            - math_tutor: for math questions
+            - history_tutor: for history questions
+            - coding_tutor: for programming questions
 
-            DEVI SEMPRE trasferire la domanda a uno specialista.
-            Non rispondere direttamente, usa sempre handoff.
+            You MUST ALWAYS transfer the question to a specialist.
+            Do not answer directly, always use handoff.
             """,
             "triage_agent",
-            "Smista le domande agli specialisti");
+            "Routes questions to specialists");
 
         // ================================================================
-        // API NATIVA: HandoffsBuilder
+        // NATIVE API: HandoffsBuilder
         // ================================================================
-        // Definizione dichiarativa delle relazioni di handoff!
+        // Declarative definition of handoff relationships!
         var specialists = new[] { mathTutor, historyTutor, codingTutor };
 
         var workflow = AgentWorkflowBuilder
             .CreateHandoffBuilderWith(triageAgent)
-            // Triage può passare a qualsiasi specialista
+            // Triage can pass to any specialist
             .WithHandoffs(triageAgent, specialists)
-            // Gli specialisti possono tornare al triage
+            // Specialists can return to triage
             .WithHandoffs(specialists, triageAgent)
             .Build();
 
-        Console.WriteLine("Fai una domanda (matematica, storia, o programmazione):");
-        Console.WriteLine("Esempi:");
-        Console.WriteLine("   - Come si calcola l'area di un cerchio?");
-        Console.WriteLine("   - Chi era Giulio Cesare?");
-        Console.WriteLine("   - Come funziona async/await in C#?");
+        Console.WriteLine("Ask a question (math, history, or programming):");
+        Console.WriteLine("Examples:");
+        Console.WriteLine("   - How do you calculate the area of a circle?");
+        Console.WriteLine("   - Who was Julius Caesar?");
+        Console.WriteLine("   - How does async/await work in C#?");
         Console.WriteLine();
 
-        // Loop di conversazione per vedere i handoff in azione
+        // Conversation loop to see handoffs in action
         var messages = new List<ChatMessage>();
 
         while (true)
         {
-            Console.Write("Tu: ");
+            Console.Write("You: ");
             var input = Console.ReadLine();
 
             if (string.IsNullOrWhiteSpace(input) ||
@@ -372,109 +372,109 @@ public static class Program
     }
 
     // ========================================================================
-    // 4. GROUPCHAT WORKFLOW (NATIVO)
+    // 4. GROUPCHAT WORKFLOW (NATIVE)
     // ========================================================================
     //
-    // NON PRESENTE NEL PROGETTO 07!
+    // NOT PRESENT IN PROJECT 07!
     //
-    // GroupChat è un pattern avanzato dove:
-    // - Più agenti partecipano a una conversazione
-    // - Un GroupChatManager decide chi parla
-    // - Built-in: RoundRobinGroupChatManager (a turno)
-    // - Custom: puoi creare il tuo Manager per logiche avanzate
+    // GroupChat is an advanced pattern where:
+    // - Multiple agents participate in a conversation
+    // - A GroupChatManager decides who speaks
+    // - Built-in: RoundRobinGroupChatManager (takes turns)
+    // - Custom: you can create your own Manager for advanced logic
     //
     // ========================================================================
 
     private static async Task RunGroupChatWorkflow(IChatClient chatClient)
     {
-        ConsoleHelper.WriteSeparator("Workflow: GroupChat (Nativo)");
+        ConsoleHelper.WriteSeparator("Workflow: GroupChat (Native)");
 
         Console.WriteLine();
-        Console.WriteLine("COME FUNZIONA GroupChatBuilder:");
-        Console.WriteLine("   1. Definisci i partecipanti alla chat");
-        Console.WriteLine("   2. Scegli un GroupChatManager (es: RoundRobin)");
-        Console.WriteLine("   3. Gli agenti parlano a turno o secondo la strategia");
-        Console.WriteLine("   4. MaximumIterationCount limita i turni");
+        Console.WriteLine("HOW GroupChatBuilder WORKS:");
+        Console.WriteLine("   1. Define chat participants");
+        Console.WriteLine("   2. Choose a GroupChatManager (e.g.: RoundRobin)");
+        Console.WriteLine("   3. Agents speak in turns or according to strategy");
+        Console.WriteLine("   4. MaximumIterationCount limits turns");
         Console.WriteLine();
 
-        // Creiamo agenti con prospettive diverse sullo stesso tema
+        // We create agents with different perspectives on the same topic
         var optimist = new ChatClientAgent(
             chatClient,
             """
-            Sei un ottimista convinto. Vedi sempre il lato positivo delle cose.
-            Nelle discussioni, evidenzi opportunità e vantaggi.
-            Rispondi in modo conciso (2-3 frasi).
+            You are a convinced optimist. You always see the positive side of things.
+            In discussions, you highlight opportunities and advantages.
+            Answer concisely (2-3 sentences).
             """,
             "optimist",
-            "Vede il lato positivo");
+            "Sees the positive side");
 
         var pessimist = new ChatClientAgent(
             chatClient,
             """
-            Sei un pessimista pragmatico. Vedi sempre i rischi e i problemi.
-            Nelle discussioni, evidenzi sfide e potenziali fallimenti.
-            Rispondi in modo conciso (2-3 frasi).
+            You are a pragmatic pessimist. You always see risks and problems.
+            In discussions, you highlight challenges and potential failures.
+            Answer concisely (2-3 sentences).
             """,
             "pessimist",
-            "Vede i rischi");
+            "Sees the risks");
 
         var realist = new ChatClientAgent(
             chatClient,
             """
-            Sei un realista equilibrato. Bilanci pro e contro oggettivamente.
-            Nelle discussioni, cerchi di sintetizzare i diversi punti di vista.
-            Rispondi in modo conciso (2-3 frasi).
-            Se gli altri hanno già discusso abbastanza, concludi con un riassunto.
+            You are a balanced realist. You balance pros and cons objectively.
+            In discussions, you try to synthesize different viewpoints.
+            Answer concisely (2-3 sentences).
+            If the others have already discussed enough, conclude with a summary.
             """,
             "realist",
-            "Bilancia le prospettive");
+            "Balances perspectives");
 
         // ================================================================
-        // API NATIVA: GroupChatBuilder + RoundRobinGroupChatManager
+        // NATIVE API: GroupChatBuilder + RoundRobinGroupChatManager
         // ================================================================
-        // Il manager decide chi parla e quando fermarsi
+        // The manager decides who speaks and when to stop
         var workflow = AgentWorkflowBuilder
             .CreateGroupChatBuilderWith(agents =>
                 new RoundRobinGroupChatManager(agents)
                 {
-                    MaximumIterationCount = 6  // Ogni agente parla 2 volte
+                    MaximumIterationCount = 6  // Each agent speaks 2 times
                 })
             .AddParticipants(optimist, pessimist, realist)
             .Build();
 
-        Console.Write("Inserisci un tema da discutere: ");
+        Console.Write("Enter a topic to discuss: ");
         var topic = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(topic))
         {
-            topic = "L'intelligenza artificiale sostituirà i programmatori?";
+            topic = "Will artificial intelligence replace programmers?";
         }
 
         Console.WriteLine();
-        Console.WriteLine($"Tema: {topic}");
+        Console.WriteLine($"Topic: {topic}");
         Console.WriteLine();
-        Console.WriteLine("--- Inizio discussione ---");
+        Console.WriteLine("--- Discussion start ---");
         Console.WriteLine();
 
         var messages = new List<ChatMessage>
         {
-            new(ChatRole.User, $"Discutiamo questo tema: {topic}")
+            new(ChatRole.User, $"Let's discuss this topic: {topic}")
         };
 
         await RunWorkflowWithEvents(workflow, messages);
 
         Console.WriteLine();
-        Console.WriteLine("--- Fine discussione ---");
+        Console.WriteLine("--- Discussion end ---");
     }
 
     // ========================================================================
-    // HELPER: Esecuzione Workflow con Eventi
+    // HELPER: Workflow Execution with Events
     // ========================================================================
     //
-    // InProcessExecution.StreamAsync() permette di:
-    // - Eseguire il workflow in-process
-    // - Ricevere eventi in streaming (AgentRunUpdateEvent, etc.)
-    // - Monitorare quale agente sta parlando
-    // - Ottenere l'output finale (WorkflowOutputEvent)
+    // InProcessExecution.StreamAsync() allows you to:
+    // - Execute the workflow in-process
+    // - Receive events in streaming (AgentRunUpdateEvent, etc.)
+    // - Monitor which agent is speaking
+    // - Get the final output (WorkflowOutputEvent)
     //
     // ========================================================================
 
@@ -487,20 +487,20 @@ public static class Program
         // ================================================================
         // InProcessExecution.StreamAsync
         // ================================================================
-        // Esegue il workflow e restituisce uno stream di eventi
+        // Executes the workflow and returns an event stream
         await using StreamingRun run = await InProcessExecution.StreamAsync(workflow, messages);
 
-        // TurnToken avvia l'esecuzione e abilita gli eventi
+        // TurnToken starts execution and enables events
         await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
 
-        // Processiamo gli eventi in streaming
+        // Process events in streaming
         await foreach (WorkflowEvent evt in run.WatchStreamAsync())
         {
             switch (evt)
             {
-                // Evento: aggiornamento da un agente (streaming del testo)
+                // Event: update from an agent (text streaming)
                 case AgentRunUpdateEvent updateEvent:
-                    // Mostra l'ID dell'agente quando cambia
+                    // Show agent ID when it changes
                     if (updateEvent.ExecutorId != lastExecutorId)
                     {
                         lastExecutorId = updateEvent.ExecutorId;
@@ -510,10 +510,10 @@ public static class Program
                         Console.ResetColor();
                     }
 
-                    // Mostra il testo in streaming
+                    // Show text in streaming
                     Console.Write(updateEvent.Update.Text);
 
-                    // Mostra eventuali function call (per handoffs)
+                    // Show any function calls (for handoffs)
                     var functionCall = updateEvent.Update.Contents
                         .OfType<FunctionCallContent>()
                         .FirstOrDefault();
@@ -522,12 +522,12 @@ public static class Program
                     {
                         Console.WriteLine();
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine($"   -> Chiamata: {functionCall.Name}");
+                        Console.WriteLine($"   -> Call: {functionCall.Name}");
                         Console.ResetColor();
                     }
                     break;
 
-                // Evento: output finale del workflow
+                // Event: final workflow output
                 case WorkflowOutputEvent outputEvent:
                     Console.WriteLine();
                     return outputEvent.As<List<ChatMessage>>() ?? new List<ChatMessage>();
@@ -538,7 +538,7 @@ public static class Program
     }
 
     // ========================================================================
-    // HELPER: Creazione Agente di Traduzione
+    // HELPER: Translation Agent Creation
     // ========================================================================
 
     private static ChatClientAgent CreateTranslationAgent(
@@ -548,12 +548,12 @@ public static class Program
         return new ChatClientAgent(
             chatClient,
             $"""
-            Sei un traduttore professionale.
-            Traduci SEMPRE il testo ricevuto in {targetLanguage}.
-            Rispondi SOLO con la traduzione, senza spiegazioni.
-            Se il testo è già in {targetLanguage}, riscrivilo comunque.
+            You are a professional translator.
+            You ALWAYS translate received text into {targetLanguage}.
+            Answer ONLY with the translation, without explanations.
+            If the text is already in {targetLanguage}, rewrite it anyway.
             """,
             $"translator_{targetLanguage.ToLower()}",
-            $"Traduce in {targetLanguage}");
+            $"Translates to {targetLanguage}");
     }
 }

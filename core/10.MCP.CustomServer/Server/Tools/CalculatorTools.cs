@@ -3,15 +3,15 @@
 // FILE: CalculatorTools.cs
 // ============================================================================
 //
-// Tool MCP per operazioni matematiche.
+// MCP tools for mathematical operations.
 //
-// COME FUNZIONA:
-// 1. [McpServerToolType] marca la classe come contenitore di tool
-// 2. [McpServerTool] marca ogni metodo come tool esposto via MCP
-// 3. [Description] fornisce la descrizione per l'LLM
-// 4. I parametri diventano automaticamente i parametri del tool
+// HOW IT WORKS:
+// 1. [McpServerToolType] marks the class as a tool container
+// 2. [McpServerTool] marks each method as a tool exposed via MCP
+// 3. [Description] provides the description for the LLM
+// 4. Parameters automatically become the tool's parameters
 //
-// L'SDK MCP genera automaticamente lo schema JSON per ogni tool!
+// The MCP SDK automatically generates the JSON schema for each tool!
 // ============================================================================
 
 using ModelContextProtocol.Server;
@@ -20,92 +20,92 @@ using System.ComponentModel;
 namespace Server.Tools;
 
 /// <summary>
-/// Tool per operazioni matematiche.
-/// Ogni metodo pubblico con [McpServerTool] diventa un tool MCP.
+/// Tools for mathematical operations.
+/// Each public method with [McpServerTool] becomes an MCP tool.
 /// </summary>
 [McpServerToolType]
 public sealed class CalculatorTools
 {
     // ========================================================================
-    // OPERAZIONI BASE
+    // BASIC OPERATIONS
     // ========================================================================
 
     [McpServerTool(Name = "add")]
-    [Description("Somma due numeri e restituisce il risultato.")]
+    [Description("Adds two numbers and returns the result.")]
     public static double Add(
-        [Description("Primo numero da sommare")] double a,
-        [Description("Secondo numero da sommare")] double b)
+        [Description("First number to add")] double a,
+        [Description("Second number to add")] double b)
     {
         return a + b;
     }
 
     [McpServerTool(Name = "subtract")]
-    [Description("Sottrae il secondo numero dal primo.")]
+    [Description("Subtracts the second number from the first.")]
     public static double Subtract(
-        [Description("Numero da cui sottrarre")] double a,
-        [Description("Numero da sottrarre")] double b)
+        [Description("Number to subtract from")] double a,
+        [Description("Number to subtract")] double b)
     {
         return a - b;
     }
 
     [McpServerTool(Name = "multiply")]
-    [Description("Moltiplica due numeri.")]
+    [Description("Multiplies two numbers.")]
     public static double Multiply(
-        [Description("Primo fattore")] double a,
-        [Description("Secondo fattore")] double b)
+        [Description("First factor")] double a,
+        [Description("Second factor")] double b)
     {
         return a * b;
     }
 
     [McpServerTool(Name = "divide")]
-    [Description("Divide il primo numero per il secondo. Restituisce errore se si divide per zero.")]
+    [Description("Divides the first number by the second. Returns error if dividing by zero.")]
     public static string Divide(
-        [Description("Dividendo")] double a,
-        [Description("Divisore (non può essere zero)")] double b)
+        [Description("Dividend")] double a,
+        [Description("Divisor (cannot be zero)")] double b)
     {
         if (b == 0)
-            return "Errore: divisione per zero non consentita";
+            return "Error: division by zero not allowed";
 
         return (a / b).ToString();
     }
 
     // ========================================================================
-    // OPERAZIONI AVANZATE
+    // ADVANCED OPERATIONS
     // ========================================================================
 
     [McpServerTool(Name = "power")]
-    [Description("Eleva un numero a potenza.")]
+    [Description("Raises a number to a power.")]
     public static double Power(
         [Description("Base")] double baseNum,
-        [Description("Esponente")] double exponent)
+        [Description("Exponent")] double exponent)
     {
         return Math.Pow(baseNum, exponent);
     }
 
     [McpServerTool(Name = "sqrt")]
-    [Description("Calcola la radice quadrata di un numero.")]
+    [Description("Calculates the square root of a number.")]
     public static string SquareRoot(
-        [Description("Numero di cui calcolare la radice (deve essere >= 0)")] double number)
+        [Description("Number to calculate the square root of (must be >= 0)")] double number)
     {
         if (number < 0)
-            return "Errore: impossibile calcolare la radice quadrata di un numero negativo";
+            return "Error: cannot calculate the square root of a negative number";
 
         return Math.Sqrt(number).ToString();
     }
 
     [McpServerTool(Name = "percentage")]
-    [Description("Calcola la percentuale di un numero. Es: percentage(200, 15) = 30 (15% di 200)")]
+    [Description("Calculates the percentage of a number. E.g.: percentage(200, 15) = 30 (15% of 200)")]
     public static double Percentage(
-        [Description("Numero totale")] double total,
-        [Description("Percentuale da calcolare")] double percent)
+        [Description("Total number")] double total,
+        [Description("Percentage to calculate")] double percent)
     {
         return (total * percent) / 100;
     }
 
     [McpServerTool(Name = "average")]
-    [Description("Calcola la media di una lista di numeri separati da virgola.")]
+    [Description("Calculates the average of a list of comma-separated numbers.")]
     public static string Average(
-        [Description("Numeri separati da virgola (es: '10,20,30')")] string numbers)
+        [Description("Comma-separated numbers (e.g.: '10,20,30')")] string numbers)
     {
         try
         {
@@ -114,13 +114,13 @@ public sealed class CalculatorTools
                 .ToList();
 
             if (values.Count == 0)
-                return "Errore: nessun numero fornito";
+                return "Error: no numbers provided";
 
             return values.Average().ToString("F2");
         }
         catch (FormatException)
         {
-            return "Errore: formato numeri non valido. Usa numeri separati da virgola.";
+            return "Error: invalid number format. Use comma-separated numbers.";
         }
     }
 }
